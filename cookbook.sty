@@ -1,0 +1,94 @@
+\NeedsTeXFormat{LaTeX2e}%[1994/12/01]
+\ProvidesPackage{cookbook}[A typesetter for baking and cooking recipes]
+
+\DeclareRelease{}{2020-02-28}{}
+\DeclareCurrentRelease{}{2020-02-28}
+
+% \RequirePackage[urw-garamond]{mathdesign}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{graphicx}
+\RequirePackage{etoolbox}
+\RequirePackage{xparse}
+\RequirePackage{enumitem}
+\RequirePackage[table,x11names]{xcolor}
+\RequirePackage[a4paper, left=1.5in, top=1in]{geometry}
+\RequirePackage[swedish, english]{babel}
+\RequirePackage{nicefrac}
+\RequirePackage{fancyhdr}
+\RequirePackage{lastpage}
+\RequirePackage{wrapfig}
+
+
+\providecommand\degrees{\ensuremath{^\circ}C}
+\providecommand\half{\nicefrac{1}{2}}
+
+
+\providecommand\ingredientrule{{\color{lightgray}\rule{0.75\linewidth}{1pt}}}
+
+\makeatletter
+\providecommand{\image}[1]{
+    \def\@img{#1}
+}
+\makeatother
+\ifdef{\@img}{}{
+    \img{hello}
+}
+
+\providecommand{\image}[1]{\def\@img#1}
+\providecommand{\yields}[1]{\def\@yield#1}
+
+\providecommand{\ingredient}{\scshape \item[] }%\\\ingredientrule}
+\providecommand{\ingredientpart}[1]{\scshape \subsubsection*{#1}}
+
+\newenvironment{ingredients}{
+    \begin{itemize}[noitemsep]
+        }{
+        \end{itemize}
+        }
+        
+        \providecommand{\step}{\scshape \item[]}
+        \providecommand{\steppart}[1]{\scshape \subsubsection*{#1}}
+        
+        \newenvironment{steps}{
+    \begin{enumerate}
+        }{
+        \end{enumerate}
+        }
+        
+\providecommand{\noteitem}{\item[]}
+
+\newenvironment{notes}{
+    \begin{itemize}
+        }{
+        \end{itemize}
+}
+
+
+
+\newenvironment{changelog}{
+    \begin{itemize}
+        }{
+        \end{itemize}
+        }
+        
+\ProcessOptions\relax
+        
+% Header and footer
+\pagestyle{fancy}
+
+\lhead{\@title}
+\rhead{\@date}
+
+\lfoot{(c) Anton Lu 2020}
+
+\makeatletter
+\renewcommand{\maketitle}{
+    \section*{\@title}
+    \begin{wrapfigure}{r}{0.4\linewidth}\centering
+        \includegraphics[width=\linewidth]{\@img}
+    \end{wrapfigure}
+    }
+\makeatother
+
+\providecommand{\makeheader}{}

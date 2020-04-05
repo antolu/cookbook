@@ -1,0 +1,102 @@
+recipe:
+  - language: en
+    name: Cheesecake
+    yields: 1 cheesecake for 12 people
+    parts:
+      - name: Bottom
+        ingredients:
+          - 13 digestive or graham crackers
+          - 125g butter
+          - 1 tbsp sugar
+          - 1 pinch ground cinnamon
+        steps:
+          - Melt the butter
+          - Crush the crackers into crumbs (but not into a flour-like state), mix with sugar and cinnamon
+          - Add the butter to the crackers and mix it together
+          - Fill a springform, 24-26cm in diameter, with the mixture and flatten the bottom and make it a bit more compact
+
+      - name: Filling
+        ingredients:
+          - 4 gelatin sheets
+          - 2 dl full-fat creamm
+          - 1 tsp vanilla powder or 1 vanilla pod
+          - 500g cottage cheese
+          - 2.5 dl icing sugar
+        steps:
+          - Make a cut along the stem of the vanilla pod and scrape out the seeds with a kitchen knife. Combine the vanilla seeds with the cottage cheese (or use vanilla powder if you do not have vanilla pods) and the icing sugar until smooth.
+          - Put the gelatin sheets in cold water for a few minutes. Slowly heat up 1 dl of the cream and the used vanilla pod in a pot until it boils, then remove the vanilla. Take out the gelatin sheets from the water and squeeze out most of the water, and add to them to the hot cream. Mix gently until all the gelatin is dissolved.
+          - Add the gelatin cream to the cheese mixture while beating the cheese at the same time. If the gelatin cream is allowed to cool down before incorporated into the cheese small jelly pieces will form.
+          - Whip the remaining cream and add to the cream mixture.
+          - Put the cheese into the springform and spread it out using a spatula, and flatten the top as good as possible.
+          - Let the cake cool for at least 2 hours in a fridge to solidify.
+
+      - name: Garnish
+        optional: Yes
+        ingredients:
+          - 0.5 L fresh strawberries
+          - 3 gelatin sheets
+          - 1.5 concentrated red syrup (eg. raspberry)
+          - juice from 1 lime
+        steps:
+          - Put the gelatin sheets in cold water for a few minutes.
+          - Mix the syrup with the lime juice and bring to a boil.
+          - Squeeze out the water from the gelatin sheets and dissolve it into the syrup.
+          - Cool down the mixture while mixing from time to time.
+          - Slice the strawberries and decorate the cheesecake, then pour the now viscous syrup over the berries to form a thin colorful layer. Make sure all the berries are covered by the syrup.
+    tips:
+      - Buy frozen raspberries and strain the melted berries to get a raspberry puree, then skip the garnishing part above with the syrup, and instead pour the rasperry puree over the cut cheesecake pieces when serving.
+
+  - language: sv
+    name: Cheesecake
+    yields: 1 cheesecake för 12 personer
+    parts:
+      - name: Botten
+        ingredients:
+          - 13 digestivekex
+          - 125g smör
+          - 1 msk socker
+          - 1 krm kanel
+        steps:
+          - Smält smöret
+          - Krossa kexen till små smulor (men inte mjöl) och blanda med socker samt kanel.
+          - Tillsätt smöret och rör tills blandningen blir fast.
+          - Tryck ut blandningen i en form, 24-26 cm i diameter
+      - name: Fyllning
+        ingredients:
+          - 4 gelatinblad
+          - 2 dl vispgrädde
+          - 1 tsk vaniljsocker eller 1 vaniljstång
+          - 500g philadelphiaost
+          - 3 dl florsocker
+        steps:
+          - Blötlägg gelatinbladen i kallt vatten i ett par minuter.
+          - Skär ett snitt i vaniljstången och skrapa ur fröna. Rör samman vaniljen med philadelphiaosten och florsocker till en slät kräm.
+          - Koka försiktigt upp 1 dl av grädden i en kastrull tillsammans med den urskrapade vaniljstången.
+          - Ta upp gelatinbladen och krama  ur vattnet och lägg i grädden. Rör om till smält.
+          - Vispa ner gelatingrädden i ostblandingen. Vispa ordentligt så att gelatinet inte koagulerar innan den vispas in i osten.
+          - Vispa resterande grädde och rör samman med ostkrämen.
+          - Häll ostblandningen i formen och bred ut den till ett jämt och platt lager.
+          - Kyl ner i kylskäp i minst 2 timmar.
+      - name: Garnering
+        ingredients:
+          - 0.5 L jordgubbar
+          - 3 gelatinblad
+          - 1-1.5 dl röd saft
+          - saft från 1 lime
+        steps:
+          - Blötlägg gelatinbladen i kallt vatten ett par minuter.
+          - Blanda saften från limen med den röda saften.
+          - Koka upp saftblandningen. Krama ur gelatinbladen och rör ned i saften.
+          - Låt svalna under omrörning.
+          - Skiva jordgubbarna och garnera cheesecaken, häll sedan den avsvalnade, trögflytande saftblandningen över kakan så att ett ca 4mm lager bildas. Ses till så att samtliga jordgubbar får bada i blandningen för the shiny-shiny.
+
+    tips:
+      - Köp frysta hallon och purea dem, och häll pureen över cheesecakebitarna när edn serveras.
+
+changelog:
+  - date: 2020-03-31
+    change:
+      - Reduced number of digestive crackers from 15 to 13
+      - Reduced number of gelatin sheets in filling from 5 to 4
+  - date: 2020-01-13
+    change: Decreased amount of icing sugar frmo 3 dl to 2.5 dl
