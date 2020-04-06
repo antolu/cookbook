@@ -26,11 +26,9 @@
 
 \providecommand\ingredientrule{{\color{lightgray}\rule{0.75\linewidth}{1pt}}}
 
-\makeatletter
 \providecommand{\image}[1]{
     \def\@img{#1}
 }
-\makeatother
 \ifdef{\@img}{}{
     \img{hello}
 }
@@ -82,6 +80,10 @@
 
 \lfoot{(c) Anton Lu 2020}
 
+\ifndef{\@img}{
+    \def\@img{X}
+}
+
 \makeatletter
 \renewcommand{\maketitle}{
     \section*{\@title}
@@ -92,3 +94,5 @@
 \makeatother
 
 \providecommand{\makeheader}{}
+
+\ProcessOptions\relax
