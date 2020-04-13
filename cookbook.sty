@@ -29,9 +29,11 @@
 \providecommand{\image}[1]{
     \def\@img{#1}
 }
-\ifdef{\@img}{}{
-    \img{hello}
+\ifundef{\@img}{
+    \def\@img{hello}
 }
+
+\newcounter{step}
 
 \providecommand{\image}[1]{\def\@img#1}
 \providecommand{\yields}[1]{\def\@yield#1}
@@ -45,7 +47,7 @@
         \end{itemize}
         }
         
-        \providecommand{\step}{\scshape \item[]}
+        \providecommand{\step}{\scshape \stepcounter{step}\item[\thestep] ~ }
         \providecommand{\steppart}[1]{\scshape \subsubsection*{#1}}
         
         \newenvironment{steps}{
@@ -78,21 +80,42 @@
 \lhead{\@title}
 \rhead{\@date}
 
-\lfoot{(c) Anton Lu 2020}
+\lfoot{\textcopyright ~ Anton Lu 2020}
 
-\ifndef{\@img}{
-    \def\@img{X}
-}
+% \makeatletter
+% \def\@maketitle{%
+%   \newpage
+%   \null
+%   \vskip 2em%
+%   \begin{center}%
+%   \let \footnote \thanks
+%     {\LARGE \@title \par}%
+%     \vskip 1.5em%
+%     {\large
+%       \lineskip .5em%
+%       \@img
+%     }
+%     \vskip 1em%
+%     %{\large \@date}%
+%   \end{center}%
+%   \par
+%   \vskip 1.5em}
+% \makeatother
+% \makeatletter\def\@img{}
 
+\def\img{\@img}
 \makeatletter
-\renewcommand{\maketitle}{
-    \section*{\@title}
-    \begin{wrapfigure}{r}{0.4\linewidth}\centering
-        \includegraphics[width=\linewidth]{\@img}
-    \end{wrapfigure}
+\providecommand{\makeheader}{
+        \section*{\@title}
+        \begin{wrapfigure}[-10]{r}{0.4\linewidth}\centering
+            \vspace{-44pt}
+            \fbox{\includegraphics[width=\linewidth]{\@img}}
+        \end{wrapfigure}
     }
 \makeatother
 
-\providecommand{\makeheader}{}
+\let\oldappendix\appendix
+
+\def\appendix{\clearpage\oldappendix}
 
 \ProcessOptions\relax

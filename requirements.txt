@@ -1,0 +1,4 @@
+flask
+uwsgi
+pyyaml
+flask-mysql
