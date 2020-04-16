@@ -1,0 +1,8 @@
+database:
+  mysql:
+    host: localhost
+    user: root
+    password : password
+  elasticsearch:
+    user: none
+    password: none

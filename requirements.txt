@@ -2,3 +2,4 @@ flask
 uwsgi
 pyyaml
 flask-mysql
+mysql-connector

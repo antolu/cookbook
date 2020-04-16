@@ -1,0 +1,4 @@
+[submodule "tests/dockerfile"]
+	path = tests/dockerfile
+	url = git@gitlab.haochen.lu:server/dockerfile.git
+	branch = master
