@@ -28,9 +28,37 @@ setupPython() {
     pip install -r requirements.txt
 }
 
+setupNginx() {
+    if [[ ! -d "/etc/nginx/sites-enabled" ]]; then
+        echo "Need to create directories for nginx blocks"
+        mkdir -p /etc/nginx/sites-available
+        mkdir -p /etc/nginx/sites-enabled
+
+        # need to restore SELinux permissions for created folder in the future
+    fi
+    sed -i '/\s{4}server {/,/\s{4}}/ s/^/#/' /etc/nginx/nginx.conf
+
+    # Need to make sure not to insert line twice (upon reinstall or similar)
+    sed -i '/include \/etc\/nginx\/conf.d\/\*.conf;/a \\n    include \/etc\/nginx\/sites-enabled\/\*.conf;' /etc/nginx/nginx.conf
+
+    cp -f ./tests/nginx/cookbook.conf /etc/nginx/sites-available/cookbook.conf
+    ln -s /etc/nginx/sites-available/cookbook.conf /etc/nginx/sites-enabled/cookbook.conf
+
+    systemctl restart nginx
+
+    usermod -aG devuser nginx
+}
+
 setupEnv() {
+    SETUPUSER="
+    setupPython
+    "
+    SETUPADMIN="
+    setupNginx
+    "
     if [[ -z $DOCKER ]]; then
-        docker exec -it -u devuser -w /home/cookbook server bash -c "source tests/tools.sh && setupPython"
+        docker exec -itw /home/cookbook server bash -c "source tests/tools.sh && $SETUPADMIN"
+        docker exec -it -u devuser -w /home/cookbook server bash -c "source tests/tools.sh && $SETUPUSER"
     else
         setupPython
     fi

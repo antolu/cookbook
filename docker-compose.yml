@@ -22,6 +22,7 @@ services:
     image: server
     container_name: server
     hostname: server
+    privileged: true
     ports:
       - 80:80
       - 443:443
