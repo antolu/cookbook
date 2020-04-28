@@ -1,8 +1,10 @@
 __pycache__
 .idea
+.devcontainer
 
 venv
 output
+django/*/migrations 
 
 # latex junk
 *.log
