@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: install texlive
+
 CWD=$PWD
 SCRIPT_DIR="$( cd "$( dirname "$0" )" >/dev/null 2>&1 && pwd )"
 
@@ -17,17 +19,26 @@ init() {
 devinit() {
     init
 
-    source ./tests/dockerfile/tools.sh
+    source /dev/stdin <<< "$(curl -L https://gitlab.haochen.lu/server/dockerfile/-/raw/master/tools.sh)"
     installDependencies
 
-    DOCKER=TRUE
+    docker-compose up -d
+
+    setupEnv
 }
 
 installPackages() {
-    yum install -y epel-release
-    yum install -y supervisor
+    echo "Installing Supervisor"
+    dnf install -y epel-release
+    dnf install -y supervisor
 
     systemctl enable --now supervisord
+
+    echo "Installing PostgreSQL"
+    if [[ -z $DOCKER ]]; then
+        dnf install -y postgresql-server
+    fi
+    dnf install -y postgresql libpq-devel
 }
 
 setupPython() {
@@ -50,6 +61,18 @@ configureSupervisor() {
 
     supervisorctl reread
     supervisorctl update
+}
+
+configurePostgres() {
+    alias postgres="docker exec -itu postgres postgres -c"
+    docker exec -itu postgres postgres bash -c 'psql -c "CREATE USER cookbook
+    WITH PASSWORD "password";"'
+    docker exec -itu postgres postgres bash -c "psql -c 'ALTER USER cookbook
+    CREATEDB;'"
+    docker exec -itu postgres postgres bash -c "psql -c 'CREATE DATABASE
+    cookbook;'"
+    docker exec -itu postgres postgres bash -c "psql -c 'GRANT ALL PRIVILEGES
+    ON DATABASE cookbook TO cookbook;'"
 }
 
 setupNginx() {
@@ -77,8 +100,7 @@ setupNginx() {
 
 setupEnv() {
     if [[ -z $DOCKER ]]; then
-        echo "In docker environment. Setting up inside Docker."
-        docker exec -itw /home/cookbook -e INSTALLDIR:$INSTALLDIR server bash -c "source tests/tools.sh && setup"
+        echo "Leaving setup to Docker-Compose. Doing nothing. "
     else
         echo "In production environment. Setting up normally."
         setup
@@ -107,5 +129,3 @@ setup() {
     configureSupervisor
     createUserGroups
 }
-
-# TODO: install texlive

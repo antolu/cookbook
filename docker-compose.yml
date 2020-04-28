@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.8'
 services: 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
@@ -11,14 +11,32 @@ services:
       - discovery.type=single-node
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
-      interval: 30s
+      interval: 15s
       timeout: 30s
       retries: 3
     volumes: 
       - ./elasticsearch:/elasticsearch
   
+  postgres:
+    image: postgres:10
+    container_name: postgres
+    hostname: postgres
+    ports: 
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=cookbook
+      - POSTGRES_USER=cookbook
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cookbook"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   web:
-    build: ./tests/dockerfile/
+    build:
+      context: .
+      dockerfile: ./tests/dockerfile/Dockerfile
     image: server
     container_name: server
     hostname: server
@@ -26,8 +44,24 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 8000:8000
     depends_on:
-      elasticsearch:
-        condition: service_healthy
+      - elasticsearch
+      - postgres
     volumes:
       - .:/home/cookbook
+    working_dir: /home/cookbook
+    command:
+      - su
+      - devuser
+      - -c
+      - |
+        sleep 5
+        cd /home/cookbook
+        source tests/tools.sh
+        setupPython
+        . ./venv/bin/activate
+        python ./django/manage.py makemigrations
+        python ./django/manage.py migrate
+        echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'anton96lu@gmail.com', 'password')" | python ./django/manage.py shell
+        python ./django/manage.py runserver 0:8000

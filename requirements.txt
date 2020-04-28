@@ -2,3 +2,5 @@ pyyaml
 mysql-connector
 gunicorn
 django
+django_extensions
+psycopg2

@@ -2,13 +2,13 @@ SHELL := /bin/bash
 
 .PHONY: devinit
 devinit:
-	source ./tests/tools.sh && devinit
-	docker-compose up -d
-	DOCKER=TRUE source ./tests/tools.sh && setupEnv
+	DOCKER=TRUE source ./tests/tools.sh && devinit
 
 .PHONY: clean
 clean: 
 	docker-compose down
+
+reset: clean devinit
 
 # TODO: update UWSGI socket
 # TODO: move files to appropriate directores
