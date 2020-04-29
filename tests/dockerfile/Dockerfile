@@ -12,6 +12,7 @@ RUN bash -c "source tests/tools.sh && \
     installPackages && \
     setupNginx && \
     configureSupervisor || true && \
-    createUserGroups"
+    createUserGroups && \
+    installTeXLive"
 
 RUN rm -rf ..?* .[!.]* *

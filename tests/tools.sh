@@ -56,6 +56,18 @@ setupPython() {
     chown -R devuser ./venv
 }
 
+installTeXLive() {
+    CWD=$PWD
+    curl -L http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz -o /tmp/install-tl.tar.gz
+    cd /tmp
+    tar -xvf install-tl.tar.gz
+    cd install-tl-*
+    ./install-tl -profile "$CWD"/config/texlive.profile
+
+    cd "$CWD"
+    echo 'pathmunge /usr/local/texlive/2020/bin/x86_64-linux' > /etc/profile.d/customshell.sh
+}
+
 configureSupervisor() {
     cp -f ./config/supervisor.cookbook.ini /etc/supervisord.d/cookbook.ini
 
