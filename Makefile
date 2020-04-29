@@ -7,6 +7,7 @@ devinit:
 .PHONY: clean
 clean: 
 	docker-compose down
+	rm -rf django/cookbook/migrations
 
 reset: clean devinit
 

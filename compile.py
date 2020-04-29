@@ -1,20 +1,22 @@
 #!/usr/bin/env python
 
 import sys
+sys.path.insert(0, 'django/cookbook')
 import logging
 from os import path
+import pprint
 
-from argparse import ArgumentParser
-from yaml import load, FullLoader
-
-from parsers import get_args, parse_recipes
-from file_io import get_writer, get_img, Environment, write_ingredients, write_steps, make_output_dir, write_recipes, compile
+from util import get_args
+from parsers import parse_file, dict_to_json
 
 log = logging.getLogger('log')
 log.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 log.addHandler(ch)
+
+pp = pprint.PrettyPrinter(indent=4)
+
 
 def main():
 
@@ -31,20 +33,32 @@ def main():
     data = dict()
 
     with open(in_file, 'r') as f:
-        data = load(f, Loader=FullLoader)
+        recipe_data = parse_file(f, {'language': args.language})
+        # data = load(f, Loader=FullLoader)
 
-    recipe_data = parse_recipes(args, data)
-    get_img(recipe_data, io)
+    pp.pprint(recipe_data)
 
-    make_output_dir(io)
+    print('-'*90)
+    print('JSONd data')
 
-    files_written = write_recipes(recipe_data, io, options)
+    output = dict_to_json(recipe_data)
+    pp.pprint(output)
+    # recipe_data = parse_recipes(args, data)
 
-    if args.source_only:
-        sys.exit(0)
+    return 0
 
-    # run pdflatex
-    compile(files_written, io)
+    # get_img(recipe_data, io)
+    #
+    # make_output_dir(io)
+    #
+    # files_written = write_recipes(recipe_data, io, options)
+    #
+    # if args.source_only:
+    #     sys.exit(0)
+    #
+    # # run pdflatex
+    # compile(files_written, io)
+
 
 if __name__ == '__main__':
     main()

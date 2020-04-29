@@ -7,14 +7,23 @@
 </head>
 
 <body>
-    {% if recipe_list %}
-    <ul>
-        {% for recipe in recipe_list %}
-        <li><a href="{% url 'cookbook:detail' slug %}">{{ recipe.title }}</a></li>
+{#    {% if recipe_list %}#}
+    <ul style="list-style-type:none;">
+        {% for recipe in object_list %}
+        <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.title }}</a></li>
         {% endfor %}
     </ul>
-    {% else %}
-    <p>No recipes are available.</p>
+{#    {% else %}#}
+{#    <p>No recipes are available.</p>#}
+{#    {% endif %}#}
+    <p>Upload a new recipe here!</p>
+    <form enctype="multipart/form-data" method="post" action="{% url 'cookbook:upload_recipe' %}">
+        {% csrf_token %}
+        <input type="file" id="recipefile" name="file">
+        <input type="submit">
+    </form>
+    {% if upload_error != None %}
+    <p>{{ upload_error }}</p>
     {% endif %}
 </body>
 

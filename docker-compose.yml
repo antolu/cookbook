@@ -61,7 +61,7 @@ services:
         source tests/tools.sh
         setupPython
         . ./venv/bin/activate
-        python ./django/manage.py makemigrations
+        python ./django/manage.py makemigrations cookbook
         python ./django/manage.py migrate
         echo "from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'anton96lu@gmail.com', 'password')" | python ./django/manage.py shell
         python ./django/manage.py runserver 0:8000
