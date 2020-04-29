@@ -1,5 +1,6 @@
 recipe:
   - language: en
+    title: Lemon meringue pie
     yields: 1 pie for 10-12 people
     temperature: 175 C
     parts:
