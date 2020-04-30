@@ -19,8 +19,8 @@ class Tag(Model):
 
 class Recipe(Model):
     title = CharField(max_length=100, help_text='The name of the recipe.')
-    slug = AutoSlugField(_('slug'), editable=True, unique=True, populate_from='title', help_text='An easy-to-remember short name.', primary_key=True)
-    uuid = UUIDField(editable=False, default=uuid.uuid4)
+    slug = AutoSlugField(_('slug'), editable=True, unique=True, populate_from='title', help_text='An easy-to-remember short name.')
+    uuid = UUIDField(editable=False, default=uuid.uuid4, primary_key=True)
 
     yields = CharField(max_length=100, help_text='How much the recipe yields, for 4 people, 8 pieces, etc.', blank=True)
 

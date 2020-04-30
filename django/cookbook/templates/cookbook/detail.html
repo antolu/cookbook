@@ -31,6 +31,22 @@
             {% endfor %}
         </ol>
     {% endfor %}
+{% else %}
+<h2>Ingredients</h2>
+<ul>
+    {% for ingredient in recipe.ingredients %}
+    <li>{{ ingredient }}</li>
+    {% endfor %}
+</ul>
+<h2>Instructions</h2>
+<ol>
+    {% for step in recipe.instructions %}
+    <li>
+        {{ step }}
+    </li>
+    {% endfor %}
+</ol>
+{% endif %}
 
     <div id="changelog" style="display: none;">
     <h2>Changelog</h2>
@@ -50,7 +66,6 @@
 
     <button onclick="changeLogButton()">Toggle changelog</button>
 
-{% endif %}
 {#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
 {#        {% csrf_token %}#}
 {#        {% for choice in question.choice_set.all %}#}

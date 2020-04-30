@@ -99,15 +99,15 @@ def parse_recipes(data, options):
             data['ingredients'] = list()
             data['steps'] = list()
 
-            for ingredient in recipe_data['ingredients']:
+            for ingredient in item['ingredients']:
                 data['ingredients'].append(ingredient)
-            for step in recipe_data['steps']:
+            for step in item['steps']:
                 data['steps'].append(step)
 
-            if 'notes' in recipe_data:  # notes exist
+            if 'notes' in item:  # notes exist
                 data['notes'] = list()
                 data['has_notes'] = True
-                for note in recipe_data:
+                for note in item:
                     data['notes'].append(note)
             else:
                 data['has_notes'] = False
@@ -189,6 +189,10 @@ def dict_to_json(data: dict):
             log.info('Recipe has parts, jsonifying.')
             output['instructions'] = json.dumps(language_d['steps'], indent=2, cls=DjangoJSONEncoder)
             output['ingredients'] = json.dumps(language_d['ingredients'], indent=2, cls=DjangoJSONEncoder)
+        else:
+            log.info('Recipe is in one chunk. Still jsonifying.')
+            output['instructions'] = json.dumps(language_d['steps'], indent=2, cls=DjangoJSONEncoder)
+            output['ingredients'] = json.dumps(language_d['ingredients'], indent=2, cls=DjangoJSONEncoder)
 
         for o, d in copyable_fields.items():
             if d in language_d:
@@ -198,6 +202,9 @@ def dict_to_json(data: dict):
                 log.info('Field {} does not exist in data. Skipping.'.format(d))
                 # if o not in output:  # Only enter empty information if it does not already exist
                 #     output[o] = ''
+
+        if 'notes' not in language_d:
+            output['notes'] = []
 
         output['slug'] = slugify(language_d['name'])
 
