@@ -30,8 +30,25 @@
                 <li>{{ step }}</li>
             {% endfor %}
         </ol>
-
     {% endfor %}
+
+    <div id="changelog" style="display: none;">
+    <h2>Changelog</h2>
+    <ul>
+        {% for change in recipe.changelog %}
+        <li>
+            Date: {{ change.date }}
+            <ul>
+                {% for comment in change.change %}
+                <li>{{ comment }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+    </div>
+
+    <button onclick="changeLogButton()">Toggle changelog</button>
 
 {% endif %}
 {#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
@@ -43,5 +60,16 @@
 {#        <input type="submit" value="Vote">#}
 {#    </form>#}
 </body>
+
+<script>
+function changeLogButton() {
+  var x = document.getElementById("changelog");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
 
 </html>

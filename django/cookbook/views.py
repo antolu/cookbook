@@ -35,6 +35,8 @@ class DetailView(generic.DetailView):
         # Load the jsonified elements into python dictionaries
         context['recipe'].ingredients = json.loads(context['recipe'].ingredients)
         context['recipe'].instructions = json.loads(context['recipe'].instructions)
+        context['recipe'].changelog = json.loads(context['recipe'].changelog)
+
         return context
 
 

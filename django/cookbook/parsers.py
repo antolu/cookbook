@@ -15,11 +15,7 @@ from pprint import pformat
 def parse_file(f, options):
     data = load(f, Loader=FullLoader)
 
-    log.error(pformat(data))
-
     parsed_recipe = parse_recipes(data, options)
-
-    # log.error(pformat(parsed_recipe))
 
     return parsed_recipe
 
@@ -121,6 +117,8 @@ def parse_recipes(data, options):
 
             data['changelog'] = list()
             for entry in orig_data['changelog']:
+                if type(entry['change']) is not list:
+                    entry['change'] = [entry['change']]
                 data['changelog'].append(entry)
 
         else:
