@@ -7,16 +7,41 @@
 </head>
 
 <body>
-    <h1>{{ recipe.title }}</h1>
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    <!-- <form action="{% url 'cookbook:vote' question.id %}" method="post">
-        {% csrf_token %}
-        {% for choice in question.choice_set.all %}
-        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
-        {% endfor %}
-        <input type="submit" value="Vote">
-    </form> -->
+<h1>{{ recipe.title }}</h1>
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% if recipe.yields %}
+    <p>Yields: {{ recipe.yields }}</p>
+{% endif %}
+{% if recipe.has_parts %}
+    <h2>Ingredients</h2>
+    {% for ingredientpart in recipe.ingredients %}
+        <h3>{{ ingredientpart.name }}</h3>
+        <ul>
+            {% for ingredient in ingredientpart.list %}
+                <li>{{ ingredient }}</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+    <h2>Instructions</h2>
+    {% for steppart in recipe.instructions %}
+        <h3>{{ steppart.name }}</h3>
+        <ol>
+            {% for step in steppart.list %}
+                <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+
+    {% endfor %}
+
+{% endif %}
+{#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
+{#        {% csrf_token %}#}
+{#        {% for choice in question.choice_set.all %}#}
+{#        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">#}
+{#        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>#}
+{#        {% endfor %}#}
+{#        <input type="submit" value="Vote">#}
+{#    </form>#}
 </body>
 
 </html>
