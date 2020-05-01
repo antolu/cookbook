@@ -1,0 +1,63 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage{cookbook}
+
+
+\title{ {{ recipe.name }} }
+
+{% if recipe.yields %} \yields{ {{ recipe.yields }} }
+{% endif %}
+{% if recipe.last_changed %} \date{ {{ recipe.date_published }} }
+{% endif %}
+\image{}
+
+\begin{document}
+    \makeheader
+
+    \subsection*{Ingredients}
+
+    {% if recipe.parts %}
+    {% for part in recipe.parts %}
+    \ingredientpart{ {{ part.name }} }
+    \begin{ingredients}
+        {% for ingredient in part.ingredients %} \ingredient {{ ingredient }} 
+        {% endfor %}
+    \end{ingredients}
+    {% endfor %}
+    {% else %}
+    \begin{ingredients}
+    {% for ingredient in recipe.ingredients %} \ingredient {{ ingredient }} 
+    {% endfor %}
+    \end{ingredients}
+    {% endif %}
+
+
+    \subsection*{Instructions}
+
+    {% if recipe.parts %}
+    {% for part in recipe.parts %}
+    \steppart{ {{ part.name }} }
+    \begin{steps}
+        {% for step in part.steps %} \step {{ step }} 
+        {% endfor %}
+    \end{steps}
+    {% endfor %}
+    {% else %}
+    \begin{steps}
+    {% for step in recipe.steps %} \step {{ step }} 
+    {% endfor %}
+    \end{steps}
+    {% endif %}
+
+    {% if recipe.changelog %}
+    \appendix
+    \subsection*{Changelog}
+    \begin{changelog}
+        {% for change in recipe.changelog %} \item {{ change.date }}
+        {% for line in change.change %} {{ line }} 
+        {% endfor %} 
+        {% endfor %}
+    \end{changelog}
+    {% endif %}
+
+\end{document}

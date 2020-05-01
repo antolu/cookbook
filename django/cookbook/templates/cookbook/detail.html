@@ -74,7 +74,12 @@
 {#        {% endfor %}#}
 {#        <input type="submit" value="Vote">#}
 {#    </form>#}
-<a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Download recipe source</a>
+<br>
+<a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Download recipe yaml source</a>
+<br>
+<a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Download recipe tex source</a>
+<br>
+<a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Download recipe PDF</a>
 </body>
 
 <script>

@@ -30,7 +30,7 @@
     \def\@img{#1}
 }
 \ifundef{\@img}{
-    \def\@img{hello}
+    \def\@img{}
 }
 
 \newcounter{step}
@@ -107,10 +107,12 @@
 \makeatletter
 \providecommand{\makeheader}{
         \section*{\@title}
+        \ifx\@img\empty\else
         \begin{wrapfigure}[-10]{r}{0.4\linewidth}\centering
             \vspace{-44pt}
             \fbox{\includegraphics[width=\linewidth]{\@img}}
         \end{wrapfigure}
+        \fi
     }
 \makeatother
 

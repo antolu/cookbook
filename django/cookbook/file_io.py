@@ -1,9 +1,10 @@
-from os import path, mkdir
+import logging
+from glob import glob
+from os import path, mkdir, remove
 from os import system as shell
 from sys import exit
-from shutil import which 
-from glob import glob
-import logging
+
+from shutil import which
 
 log = logging.getLogger('log')
 log.setLevel(logging.DEBUG)
@@ -35,7 +36,7 @@ def get_writer(f):
     return lambda s='', end='\n': print(s, file=f, end=end)
 
 
-def get_img(data : dict, io : dict):
+def get_img(data: dict, io: dict):
     img_dir = path.join(io['root_dir'], io['img_dir'])
     img = None
     if not path.exists(io['img_dir']):
@@ -54,19 +55,19 @@ def get_img(data : dict, io : dict):
         data['img'] = img
 
 
-def make_output_dir(io : dict):
+def make_output_dir(io: dict):
     io['output_dir'] = path.join(io['root_dir'], io['output_dir'])
     if not path.exists(io['output_dir']):
         log.info('Output directory does not exist. Creating it. ')
         mkdir(io['output_dir'])
 
 
-def write_recipes(data : dict, io : dict, options : dict):
+def write_recipes(data: dict, io: dict, options: dict):
     files_written = list()
 
     for language, language_data in data.items():
         out_filename = path.join(io['output_dir'],
-                                '{}.{}.tex'.format(io['basename'], language))
+                                 '{}.{}.tex'.format(io['basename'], language))
 
         with open(out_filename, 'w') as f:
             write = get_writer(f)
@@ -80,7 +81,6 @@ def write_recipes(data : dict, io : dict, options : dict):
             else:
                 log.warning('No recipe name given. Using file name {} as title.'.format(io['basename']))
                 write('\\title{{{}}}\n'.format(io['basename']).replace('_', '\_'))
-
 
             if 'yields' in language_data and language_data['yields'] is not None:
                 write('\\yields{{ {} }}\n'.format(language_data['yields']))
@@ -128,10 +128,8 @@ def write_recipes(data : dict, io : dict, options : dict):
                                     entry += '\t{}\n'.format(line)
                             write('\t\\noteitem {}'.format(entry))
 
-            write('\\end{document}')
-
             files_written.append(out_filename)
-    
+
     log.info('Written files {}'.format(' '.join(files_written)))
 
     return files_written
@@ -150,7 +148,7 @@ def write_ingredients(ingredients, f):
     write()
 
 
-def write_steps(steps : dict, f):
+def write_steps(steps: dict, f):
     write = get_writer(f)
 
     if steps['name'] or steps['name']:
@@ -163,23 +161,21 @@ def write_steps(steps : dict, f):
     write()
 
 
-def compile(files : list, io : dict):
+def compile(files: list):
     """
     Run pdflatex
 
     param : files The files to run pdflatex on
-    param : io Dictionary containing path information
 
     """
-
     if which('pdflatex') is None:
         log.error('pdflatex could not be found. Leaving Latex source files as-is.')
         exit(2)
     else:
         for f in files:
-            # shell('pdflatex \'{}\''.format(f.replace(' ', '\\ ')))
+            output_dir = path.split(f)[0]
             command = r'pdflatex -output-directory={} {}'.format(
-            path.join(io['output_dir']).replace(' ', '\\ '), f.replace(' ', '\\ '))
+                output_dir.replace(' ', '\\ '), f.replace(' ', '\\ '))
             log.info('Running command {}'.format(command))
             shell(command)
 
@@ -189,8 +185,9 @@ def compile(files : list, io : dict):
         to_delete = list()
         for f in files:
             basename = path.splitext(path.basename(f))[0]
-            to_delete.append(path.join(io['output_dir'], '{}.log'))
-            to_delete.append(path.join(io['output_dir'], '{}.aux'))
+            to_delete.append(path.join(output_dir, '{}.log'.format(basename)))
+            to_delete.append(path.join(output_dir, '{}.aux'.format(basename)))
 
         for f in to_delete:
             log.debug('Deleting file {}'.format(path.basename(f)))
+            remove(f)

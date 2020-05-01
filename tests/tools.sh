@@ -66,6 +66,15 @@ installTeXLive() {
 
     cd "$CWD"
     echo 'pathmunge /usr/local/texlive/2020/bin/x86_64-linux' > /etc/profile.d/customshell.sh
+
+    /usr/local/texlive/2020/bin/x86_64-linux/tlmgr install \
+        etoolbox \
+        enumitem \
+        xcolor \
+        babel-swedish \
+        units \
+        lastpage \
+        wrapfig
 }
 
 configureSupervisor() {

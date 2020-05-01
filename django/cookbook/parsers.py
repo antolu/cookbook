@@ -8,8 +8,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.text import slugify
 from yaml import load, FullLoader
 
-from .models import Recipe
-
 log = logging.getLogger(__name__)
 
 
@@ -207,15 +205,12 @@ def dict_to_json(data: dict):
                 if o not in output:  # Only enter empty information if it does not already exist
                     output[o] = d[1]
 
-        # if 'notes' not in language_d:
-        #     output['notes'] = []
-
         output['slug'] = slugify(language_d['name'])
 
     return output
 
 
-def recipe_to_dict(recipe: Recipe):
+def recipe_to_dict(recipe):
     output = OrderedDict()
 
     output['language'] = recipe.language
