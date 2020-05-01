@@ -8,6 +8,7 @@ import pprint
 
 from util import get_args
 from parsers import parse_file, dict_to_json
+from file_io import compile, write_recipes, get_img, make_output_dir
 
 log = logging.getLogger('log')
 log.setLevel(logging.DEBUG)
@@ -45,19 +46,19 @@ def main():
     pp.pprint(output)
     # recipe_data = parse_recipes(args, data)
 
-    return 0
+    # return 0
 
-    # get_img(recipe_data, io)
-    #
-    # make_output_dir(io)
-    #
-    # files_written = write_recipes(recipe_data, io, options)
-    #
-    # if args.source_only:
-    #     sys.exit(0)
-    #
-    # # run pdflatex
-    # compile(files_written, io)
+    get_img(recipe_data, io)
+
+    make_output_dir(io)
+
+    files_written = write_recipes(recipe_data, io, options)
+
+    if args.source_only:
+        sys.exit(0)
+
+    # run pdflatex
+    compile(files_written)
 
 
 if __name__ == '__main__':
