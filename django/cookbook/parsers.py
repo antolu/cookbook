@@ -1,15 +1,16 @@
+import json
 import logging
 import sys
-from django.utils.text import slugify
+from collections import OrderedDict
+from datetime import date, timedelta
 
-from yaml import load, FullLoader
 from django.core.serializers.json import DjangoJSONEncoder
-import json
-from datetime import date
+from django.utils.text import slugify
+from yaml import load, FullLoader
+
+from .models import Recipe
 
 log = logging.getLogger(__name__)
-
-from pprint import pformat
 
 
 def parse_file(f, options):
@@ -51,6 +52,7 @@ def parse_recipes(data, options):
         if language not in recipes:
             continue
         data = recipes[language]
+        data['language'] = language
 
         if 'yields' in item:
             data['yields'] = item['yields']
@@ -134,14 +136,16 @@ def dict_to_json(data: dict):
 
     output = dict()
 
+    # Map output keys to input keys and default value
     copyable_fields = {
-        'last_changed': 'last_changed',
-        'pub_date': 'date_published',
-        'title': 'name',
-        'yields': 'yields',
-        'has_parts': 'has_parts',
-        'notes': 'notes',
-        'cooking_time': 'cooking_time'
+        'last_changed': ('last_changed', date.today()),
+        'pub_date': ('date_published', date.today()),
+        'title': ('name', ''),
+        'yields': ('yields', ''),
+        'has_parts': ('has_parts', False),
+        'notes': ('notes', []),
+        'cooking_time': ('cooking_time', timedelta()),
+        'language': ('language', 'en'),
     }
 
     for language, language_d in data.items():
@@ -195,17 +199,69 @@ def dict_to_json(data: dict):
             output['ingredients'] = json.dumps(language_d['ingredients'], indent=2, cls=DjangoJSONEncoder)
 
         for o, d in copyable_fields.items():
-            if d in language_d:
-                log.info('Field {} exists in data, overriding with {}.'.format(d, language_d[d]))
-                output[o] = language_d[d]
+            if d[0] in language_d:
+                log.info('Field {} exists in data, overriding with {}.'.format(d[0], language_d[d[0]]))
+                output[o] = language_d[d[0]]
             else:
-                log.info('Field {} does not exist in data. Skipping.'.format(d))
-                # if o not in output:  # Only enter empty information if it does not already exist
-                #     output[o] = ''
+                log.info('Field {} does not exist in data. Skipping.'.format(d[0]))
+                if o not in output:  # Only enter empty information if it does not already exist
+                    output[o] = d[1]
 
-        if 'notes' not in language_d:
-            output['notes'] = []
+        # if 'notes' not in language_d:
+        #     output['notes'] = []
 
         output['slug'] = slugify(language_d['name'])
 
     return output
+
+
+def recipe_to_dict(recipe: Recipe):
+    output = OrderedDict()
+
+    output['language'] = recipe.language
+    output['name'] = recipe.title
+    output['slug'] = recipe.slug
+    output['uuid'] = str(recipe.uuid)
+    output['yields'] = recipe.yields
+    if recipe.temperature != 'null' or recipe.temperature != 0:
+        output['temperature'] = recipe.temperature
+
+    output['date_published'] = recipe.pub_date
+    if recipe.cooking_time != timedelta():
+        output['cooking_time'] = recipe.cooking_time
+    output['has_parts'] = recipe.has_parts
+    output['ingredients'] = json.loads(recipe.ingredients)
+    output['steps'] = json.loads(recipe.instructions)
+    output['changelog'] = json.loads(recipe.changelog)
+
+    return output
+
+
+def format_for_output(data: dict):
+    if data['has_parts']:
+        data['parts'] = list()
+        for i in range(len(data['ingredients'])):
+            ingredientpart = data['ingredients'][i]
+            steppart = data['steps'][i]
+
+            name = ingredientpart['name']
+            optional = ingredientpart['optional']
+            items = ingredientpart['list']
+            steps = steppart['list']
+
+            data['parts'].append(OrderedDict([
+                ('name', name),
+                ('optional', optional),
+                ('ingredients', items),
+                ('steps', steps),
+            ]))
+
+        del data['ingredients']
+        del data['steps']
+    else:
+        data['ingredients'] = data['ingredients']['list']
+        data['steps'] = data['steps']['list']
+
+    del data['has_parts']
+
+    return data

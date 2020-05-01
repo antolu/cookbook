@@ -1,18 +1,22 @@
 import json
+import logging
+from collections import OrderedDict
 
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.template import loader
+import yaml
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
-from .forms import UploadRecipeForm
-from pprint import pformat
 
-from .models import Recipe, Tag
 from .files import handle_uploaded_file
+from .forms import UploadRecipeForm
+from .models import Recipe
+from .parsers import recipe_to_dict, format_for_output
 
-import logging
 log = logging.getLogger(__name__)
+
+represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
+yaml.add_representer(OrderedDict, represent_dict_order)
 
 
 # Create your views here.
@@ -51,3 +55,17 @@ def upload_file(request):
     return render(request, 'cookbook/index.html', {
         'upload_error': 'File upload failed!',
     })
+
+
+def download_yaml(request, pk):
+    recipe = Recipe.objects.get(pk=pk)
+
+    data = recipe_to_dict(recipe)
+    formatted_data = format_for_output(data)
+
+    response = HttpResponse(content_type='text/yaml')
+    response['Content-Disposition'] = 'attachment; filename="{}.yml"'.format(recipe.title).replace('-', '_')
+
+    yaml.dump({'recipe': formatted_data}, response)
+
+    return response
