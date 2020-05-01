@@ -34,7 +34,7 @@ def main():
     data = dict()
 
     with open(in_file, 'r') as f:
-        recipe_data = parse_file(f, {'language': args.language})
+        recipe_data = parse_file(f)
         # data = load(f, Loader=FullLoader)
 
     pp.pprint(recipe_data)

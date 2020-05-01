@@ -1,6 +1,6 @@
 import uuid
 
-from django.db.models import Model, CharField, DurationField, DateField, ManyToManyField, BooleanField, UUIDField, IntegerField
+from django.db.models import Model, CharField, DurationField, DateField, ManyToManyField, BooleanField, UUIDField, IntegerField, TextField
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.utils import timezone
 from django_extensions.db.fields import AutoSlugField
@@ -25,6 +25,8 @@ class Recipe(Model):
 
     yields = CharField(max_length=100, help_text='How much the recipe yields, for 4 people, 8 pieces, etc.', blank=True)
 
+    description = TextField(blank=True, null=True)
+
     external_recipes = ManyToManyField('Recipe', blank=True)
     #
     cooking_time = DurationField(blank=True, null=True)
@@ -35,7 +37,8 @@ class Recipe(Model):
     instructions = JSONField()
 
     changelog = JSONField(blank=True)
-    notes = ArrayField(CharField(max_length=255), blank=True)
+    notes = ArrayField(TextField(), blank=True)
+    tips = ArrayField(TextField(), blank=True)
 
     pub_date = DateField('date_published', default=timezone.now, editable=False)
     last_changed = DateField(default=timezone.now)

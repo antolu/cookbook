@@ -11,120 +11,91 @@ from yaml import load, FullLoader
 log = logging.getLogger(__name__)
 
 
-def parse_file(f, options):
+def parse_file(f):
     data = load(f, Loader=FullLoader)
 
-    parsed_recipe = parse_recipes(data, options)
+    parsed_recipe = parse_recipes(data)
 
     return parsed_recipe
 
 
-def parse_recipes(data, options):
-    if 'recipe' not in data:
-        log.error('Could not find key \'recipe\' in the file.')
-        sys.exit(1)
+def parse_recipes(data):
 
-    recipe_data = data['recipe']
-    orig_data = data
+    output = dict()
 
-    recipes = dict()
-
-    # parse languages
-    if options['language'] != 'all':
-        for item in recipe_data:
-            if item['language'] == options['language']:
-                break
-
-            # finally
-            log.error('Recipe written in {} not found'.format(options['language']))
-            sys.exit(1)
-
-        recipes[options['language']] = dict()
-    else:
-        for item in recipe_data:
-            recipes[item['language']] = dict()
+    field_mapping = {
+        'name': 'name',
+        'uuid': 'uuid',
+        'yields': 'yields',
+        'description': 'description',
+        'notes': 'notes',
+        'tags': 'tags',
+    }
 
     # check if recipe is divided into steps
-    for item in recipe_data:
-        language = item['language']
-        if language not in recipes:
-            continue
-        data = recipes[language]
-        data['language'] = language
+    language = data['language']
+    output['language'] = language
 
-        if 'yields' in item:
-            data['yields'] = item['yields']
-        if 'name' not in item:
-            log.warning('Recipe has no name.')
+    for o, d in field_mapping.items():
+        if d in data:
+            output[o] = data[d]
+
+    if 'parts' in data:
+        output['has_parts'] = True
+        output['ingredients'] = list()
+        output['steps'] = list()
+
+        for part in data['parts']:
+            ingredients = list()
+            steps = list()
+            notes = list()
+
+            for ingredient in part['ingredients']:
+                ingredients.append(ingredient)
+            for step in part['steps']:
+                steps.append(step)
+
+            is_optional = False
+            if 'optional' in part and part['optional']:
+                is_optional = True
+
+            output['ingredients'].append(
+                {'list': ingredients, 'optional': is_optional,
+                 'name': part['name'] if 'name' in part else None})
+            output['steps'].append(
+                {'list': steps, 'optional': is_optional, 'name': part['name'] if 'name' in part else None})
+
+    else:  # only no parts in recipe
+        output['has_parts'] = False
+        output['ingredients'] = list()
+        output['steps'] = list()
+
+        for ingredient in data['ingredients']:
+            output['ingredients'].append(ingredient)
+        for step in data['steps']:
+            output['steps'].append(step)
+
+        if 'notes' in data:  # notes exist
+            output['notes'] = list()
+            output['has_notes'] = True
+            for note in data:
+                output['notes'].append(note)
         else:
-            data['name'] = item['name']
-        if 'parts' in item:
-            data['has_parts'] = True
-            data['ingredients'] = list()
-            data['steps'] = list()
-            data['notes'] = list()
+            output['has_notes'] = False
 
-            for part in item['parts']:
-                ingredients = list()
-                steps = list()
-                notes = list()
+    if 'changelog' in data:  # changelog exists
+        output['has_changelog'] = True
 
-                for ingredient in part['ingredients']:
-                    ingredients.append(ingredient)
-                for step in part['steps']:
-                    steps.append(step)
+        output['changelog'] = list()
+        for entry in data['changelog']:
+            if type(entry['change']) is not list:
+                entry['change'] = [entry['change']]
+            output['changelog'].append(entry)
 
-                is_optional = False
-                if 'optional' in part and part['optional']:
-                    is_optional = True
+    else:
+        output['has_changelog'] = False
 
-                data['ingredients'].append(
-                    {'list': ingredients, 'optional': is_optional,
-                     'name': part['name'] if 'name' in part else None})
-                data['steps'].append(
-                    {'list': steps, 'optional': is_optional, 'name': part['name'] if 'name' in part else None})
-
-            if 'notes' in item:  # notes exist for this language
-                data['has_notes'] = True
-                for note in item['notes']:
-                    data['notes'].append(note)
-
-            else:
-                data['has_notes'] = False
-                log.debug('{} notes parsed for language {}'.format(
-                    len(data['notes']), language))
-
-        else:  # only no parts in recipe
-            data['has_parts'] = False
-            data['ingredients'] = list()
-            data['steps'] = list()
-
-            for ingredient in item['ingredients']:
-                data['ingredients'].append(ingredient)
-            for step in item['steps']:
-                data['steps'].append(step)
-
-            if 'notes' in item:  # notes exist
-                data['notes'] = list()
-                data['has_notes'] = True
-                for note in item:
-                    data['notes'].append(note)
-            else:
-                data['has_notes'] = False
-
-        if 'changelog' in orig_data:  # changelog exists
-            data['has_changelog'] = True
-
-            data['changelog'] = list()
-            for entry in orig_data['changelog']:
-                if type(entry['change']) is not list:
-                    entry['change'] = [entry['change']]
-                data['changelog'].append(entry)
-
-        else:
-            data['has_changelog'] = False
-
-    return recipes
+    return output
 
 
 def dict_to_json(data: dict):
@@ -144,68 +115,65 @@ def dict_to_json(data: dict):
         'notes': ('notes', []),
         'cooking_time': ('cooking_time', timedelta()),
         'language': ('language', 'en'),
+        'tips': ('tips', []),
     }
 
-    for language, language_d in data.items():
-        if language != 'en':  # Ignore non-english recipes for now
-            continue
+    if data['has_changelog'] or 'changelog' in data:
+        output['changelog'] = json.dumps(data['changelog'], indent=2, cls=DjangoJSONEncoder)
 
-        if language_d['has_changelog'] or 'changelog' in language_d:
-            output['changelog'] = json.dumps(language_d['changelog'], indent=2, cls=DjangoJSONEncoder)
+        # find last changed date:
+        earliest = date.today()
+        latest = date(2000, 1, 1)
+        found_date = False
+        for change in data['changelog']:
+            if 'date' in change:
+                found_date = True
+                if change['date'] < earliest:
+                    earliest = change['date']
+                if change['date'] > latest:
+                    latest = change['date']
 
-            # find last changed date:
-            earliest = date.today()
-            latest = date(2000, 1, 1)
-            found_date = False
-            for change in language_d['changelog']:
-                if 'date' in change:
-                    found_date = True
-                    if change['date'] < earliest:
-                        earliest = change['date']
-                    if change['date'] > latest:
-                        latest = change['date']
-
-            if found_date:
-                log.info('Parsed dates from changelog: {}/{}'.format(earliest, latest))
-                output['pub_date'] = earliest
-                output['last_changed'] = latest
-            else:
-                log.info('No dates found, using today as default.')
-                output['pub_date'] = date.today()
-                output['last_changed'] = date.today()
+        if found_date:
+            log.info('Parsed dates from changelog: {}/{}'.format(earliest, latest))
+            output['pub_date'] = earliest
+            output['last_changed'] = latest
         else:
-            output['changelog'] = json.dumps(
-                [
-                    {
-                        'change': [
-                            'First publication',
-                        ],
-                        'date': date.today()
-                    }
-                ],
-                indent=2,
-                cls=DjangoJSONEncoder,
-            )
+            log.info('No dates found, using today as default.')
+            output['pub_date'] = date.today()
+            output['last_changed'] = date.today()
+    else:
+        output['changelog'] = json.dumps(
+            [
+                {
+                    'change': [
+                        'First publication',
+                    ],
+                    'date': date.today()
+                }
+            ],
+            indent=2,
+            cls=DjangoJSONEncoder,
+        )
 
-        if language_d['has_parts'] or len(language_d['ingredients']) == len(language_d['steps']):
-            log.info('Recipe has parts, jsonifying.')
-            output['instructions'] = json.dumps(language_d['steps'], indent=2, cls=DjangoJSONEncoder)
-            output['ingredients'] = json.dumps(language_d['ingredients'], indent=2, cls=DjangoJSONEncoder)
+    if data['has_parts'] or len(data['ingredients']) == len(data['steps']):
+        log.info('Recipe has parts, jsonifying.')
+        output['instructions'] = json.dumps(data['steps'], indent=2, cls=DjangoJSONEncoder)
+        output['ingredients'] = json.dumps(data['ingredients'], indent=2, cls=DjangoJSONEncoder)
+    else:
+        log.info('Recipe is in one chunk. Still jsonifying.')
+        output['instructions'] = json.dumps(data['steps'], indent=2, cls=DjangoJSONEncoder)
+        output['ingredients'] = json.dumps(data['ingredients'], indent=2, cls=DjangoJSONEncoder)
+
+    for o, d in copyable_fields.items():
+        if d[0] in data:
+            log.info('Field {} exists in data, overriding with {}.'.format(d[0], data[d[0]]))
+            output[o] = data[d[0]]
         else:
-            log.info('Recipe is in one chunk. Still jsonifying.')
-            output['instructions'] = json.dumps(language_d['steps'], indent=2, cls=DjangoJSONEncoder)
-            output['ingredients'] = json.dumps(language_d['ingredients'], indent=2, cls=DjangoJSONEncoder)
+            log.info('Field {} does not exist in data. Skipping.'.format(d[0]))
+            if o not in output:  # Only enter empty information if it does not already exist
+                output[o] = d[1]
 
-        for o, d in copyable_fields.items():
-            if d[0] in language_d:
-                log.info('Field {} exists in data, overriding with {}.'.format(d[0], language_d[d[0]]))
-                output[o] = language_d[d[0]]
-            else:
-                log.info('Field {} does not exist in data. Skipping.'.format(d[0]))
-                if o not in output:  # Only enter empty information if it does not already exist
-                    output[o] = d[1]
-
-        output['slug'] = slugify(language_d['name'])
+    output['slug'] = slugify(data['name'])
 
     return output
 
@@ -218,6 +186,8 @@ def recipe_to_dict(recipe):
     output['slug'] = recipe.slug
     output['uuid'] = str(recipe.uuid)
     output['yields'] = recipe.yields
+    if recipe['description'] != 'null':
+        output['description'] = recipe.description
     if recipe.temperature != 'null' or recipe.temperature != 0:
         output['temperature'] = recipe.temperature
 
@@ -228,6 +198,8 @@ def recipe_to_dict(recipe):
     output['ingredients'] = json.loads(recipe.ingredients)
     output['steps'] = json.loads(recipe.instructions)
     output['changelog'] = json.loads(recipe.changelog)
+    output['notes'] = recipe.notes
+    output['tips'] = recipe.tips
 
     return output
 

@@ -2,6 +2,7 @@ import json
 import logging
 from os import path
 from os import system as shell
+import traceback
 from collections import OrderedDict
 
 import yaml
@@ -54,8 +55,15 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadRecipeForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
-            return HttpResponseRedirect(reverse('cookbook:index'))
+            try:
+                handle_uploaded_file(request.FILES['file'])
+                return HttpResponseRedirect(reverse('cookbook:index'))
+            except (KeyError, NameError, MemoryError) as err:
+                traceback.print_exc()
+                log.error(err)
+                return render(request, 'cookbook/index.html', {
+                    'upload_error': 'File upload failed: {}'.format(err),
+                })
     else:
         form = UploadRecipeForm()
     return render(request, 'cookbook/index.html', {
@@ -72,7 +80,7 @@ def download_yaml(request, pk):
     response = HttpResponse(content_type='text/yaml')
     response['Content-Disposition'] = 'attachment; filename="{}.yml"'.format(recipe.title).replace('-', '_')
 
-    yaml.dump({'recipe': formatted_data}, response)
+    yaml.dump(formatted_data, response)
 
     return response
 
