@@ -19,7 +19,7 @@
     <p>Upload a new recipe here!</p>
     <form enctype="multipart/form-data" method="post" action="{% url 'cookbook:upload_recipe' %}">
         {% csrf_token %}
-        <input type="file" id="recipefile" name="file">
+        <input type="file" id="recipefile" name="file" multiple>
         <input type="submit">
     </form>
     {% if upload_success %}

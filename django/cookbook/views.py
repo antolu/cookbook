@@ -56,13 +56,17 @@ def upload_file(request):
         form = UploadRecipeForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                handle_uploaded_file(request.FILES['file'])
-                return HttpResponseRedirect(reverse('cookbook:index'))
+                files = request.FILES.getlist('file')
+                for f in files:
+                    handle_uploaded_file(f)
+                return HttpResponseRedirect(reverse('cookbook:index'), {
+                    'upload_success': 'Files successfully uploaded!'
+                })
             except (KeyError, NameError, MemoryError) as err:
                 traceback.print_exc()
                 log.error(err)
                 return render(request, 'cookbook/index.html', {
-                    'upload_error': 'File upload failed: {}'.format(err),
+                    'upload_error': 'File upload failed: {}!'.format(err),
                 })
     else:
         form = UploadRecipeForm()
