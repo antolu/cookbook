@@ -112,10 +112,10 @@ def dict_to_json(data: dict):
         'title': ('name', ''),
         'yields': ('yields', ''),
         'has_parts': ('has_parts', False),
-        'notes': ('notes', []),
+        'notes': ('notes', list()),
         'cooking_time': ('cooking_time', timedelta()),
         'language': ('language', 'en'),
-        'tips': ('tips', []),
+        'tips': ('tips', list()),
     }
 
     if data['has_changelog'] or 'changelog' in data:
@@ -186,9 +186,9 @@ def recipe_to_dict(recipe):
     output['slug'] = recipe.slug
     output['uuid'] = str(recipe.uuid)
     output['yields'] = recipe.yields
-    if recipe['description'] != 'null':
+    if recipe.description is not None:
         output['description'] = recipe.description
-    if recipe.temperature != 'null' or recipe.temperature != 0:
+    if recipe.temperature != 0:
         output['temperature'] = recipe.temperature
 
     output['date_published'] = recipe.pub_date
@@ -218,7 +218,7 @@ def format_for_output(data: dict):
 
             data['parts'].append(OrderedDict([
                 ('name', name),
-                ('optional', optional),
+                not optional and ('optional', optional),
                 ('ingredients', items),
                 ('steps', steps),
             ]))
