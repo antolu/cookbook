@@ -129,7 +129,7 @@ def dict_to_json(data: dict):
     }
 
     if data['has_changelog'] or 'changelog' in data:
-        output['changelog'] = json.dumps(data['changelog'], indent=2, cls=DjangoJSONEncoder)
+        output['changelog'] = json.dumps(data['changelog'], cls=DjangoJSONEncoder, separators=(', ', ': '))
 
         # find last changed date:
         earliest = date.today()
@@ -153,7 +153,7 @@ def dict_to_json(data: dict):
             output['last_changed'] = date.today()
     else:
         output['changelog'] = json.dumps(
-            [
+             [
                 {
                     'change': [
                         'First publication',
@@ -161,18 +161,18 @@ def dict_to_json(data: dict):
                     'date': date.today()
                 }
             ],
-            indent=2,
             cls=DjangoJSONEncoder,
+            separators=(',', ':'),
         )
 
     if data['has_parts'] or len(data['ingredients']) == len(data['steps']):
         log.info('Recipe has parts, jsonifying.')
-        output['instructions'] = json.dumps(data['steps'], indent=2, cls=DjangoJSONEncoder)
-        output['ingredients'] = json.dumps(data['ingredients'], indent=2, cls=DjangoJSONEncoder)
+        output['instructions'] = json.dumps(data['steps'], cls=DjangoJSONEncoder, separators=(', ', ': '))
+        output['ingredients'] = json.dumps(data['ingredients'], cls=DjangoJSONEncoder, separators=(', ', ': '))
     else:
         log.info('Recipe is in one chunk. Still jsonifying.')
-        output['instructions'] = json.dumps(data['steps'], indent=2, cls=DjangoJSONEncoder)
-        output['ingredients'] = json.dumps(data['ingredients'], indent=2, cls=DjangoJSONEncoder)
+        output['instructions'] = json.dumps(data['steps'], cls=DjangoJSONEncoder, separators=(', ', ': '))
+        output['ingredients'] = json.dumps(data['ingredients'], cls=DjangoJSONEncoder, separators=(', ', ': '))
 
     for o, d in copyable_fields.items():
         if d[0] in data:
