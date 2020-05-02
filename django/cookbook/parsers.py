@@ -125,6 +125,7 @@ def dict_to_json(data: dict):
         'cooking_time': ('cooking_time', timedelta()),
         'language': ('language', 'en'),
         'tips': ('tips', list()),
+        'tags': ('tags', list()),
     }
 
     if data['has_changelog'] or 'changelog' in data:
