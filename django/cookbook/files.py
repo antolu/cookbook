@@ -4,6 +4,10 @@ from yaml import load, FullLoader
 from .models import Recipe
 from .parsers import parse_file, dict_to_json
 
+import logging
+log = logging.getLogger(__name__)
+from pprint import pformat
+
 
 def handle_uploaded_file(f):
     if not f.size < 1e6:
@@ -18,6 +22,21 @@ def handle_uploaded_file(f):
     parsed_file = parse_file(f)
     output = dict_to_json(parsed_file)
 
-    recipe = Recipe(**output)
+    log.info(pformat(output))
 
-    recipe.save()
+    if 'uuid' in output and output['uuid']:
+        try:
+            current_version = Recipe.objects.get(pk=output['uuid'])
+            log.info('Replacing currently existing recipe with new one.')
+
+            for field in current_version.__dict__:
+                if field in output:
+                    current_version.__dict__[field] = output[field]
+
+            current_version.save()
+
+        except Recipe.DoesNotExist:
+            log.info('Creating new recipe entry for {}'.format(output['title']))
+            recipe = Recipe(**output)
+
+            recipe.save()

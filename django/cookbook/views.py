@@ -65,12 +65,12 @@ def upload_file(request):
             except (KeyError, NameError, MemoryError) as err:
                 traceback.print_exc()
                 log.error(err)
-                return render(request, 'cookbook/index.html', {
+                return HttpResponseRedirect(reverse('cookbook:index'),  {
                     'upload_error': 'File upload failed: {}!'.format(err),
                 })
     else:
         form = UploadRecipeForm()
-    return render(request, 'cookbook/index.html', {
+    return HttpResponseRedirect(reverse('cookbook:index'), {
         'upload_error': 'File upload failed!',
     })
 

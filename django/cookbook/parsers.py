@@ -1,8 +1,10 @@
 import json
 import logging
 import sys
+from pprint import pformat
 from collections import OrderedDict
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from uuid import uuid4
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.text import slugify
@@ -28,7 +30,10 @@ def parse_recipes(data):
         'uuid': 'uuid',
         'yields': 'yields',
         'description': 'description',
+        'temperature': 'temperature',
+        'cooking_time': 'cooking_time',
         'notes': 'notes',
+        'tips': 'tips',
         'tags': 'tags',
     }
 
@@ -88,6 +93,8 @@ def parse_recipes(data):
 
         output['changelog'] = list()
         for entry in data['changelog']:
+            if type(entry['date']) is str:
+                entry['date'] = datetime.strptime(entry['date'], '%Y-%m-%d').date()
             if type(entry['change']) is not list:
                 entry['change'] = [entry['change']]
             output['changelog'].append(entry)
@@ -110,9 +117,11 @@ def dict_to_json(data: dict):
         'last_changed': ('last_changed', date.today()),
         'pub_date': ('date_published', date.today()),
         'title': ('name', ''),
+        'uuid': ('uuid', uuid4()),
         'yields': ('yields', ''),
         'has_parts': ('has_parts', False),
         'notes': ('notes', list()),
+        'temperature': ('temperature', 0),
         'cooking_time': ('cooking_time', timedelta()),
         'language': ('language', 'en'),
         'tips': ('tips', list()),
@@ -181,10 +190,10 @@ def dict_to_json(data: dict):
 def recipe_to_dict(recipe):
     output = OrderedDict()
 
-    output['language'] = recipe.language
     output['name'] = recipe.title
     output['slug'] = recipe.slug
     output['uuid'] = str(recipe.uuid)
+    output['language'] = recipe.language
     output['yields'] = recipe.yields
     if recipe.description is not None:
         output['description'] = recipe.description
@@ -204,7 +213,7 @@ def recipe_to_dict(recipe):
     return output
 
 
-def format_for_output(data: dict):
+def format_for_output(data: OrderedDict):
     if data['has_parts']:
         data['parts'] = list()
         for i in range(len(data['ingredients'])):
@@ -218,17 +227,23 @@ def format_for_output(data: dict):
 
             data['parts'].append(OrderedDict([
                 ('name', name),
-                not optional and ('optional', optional),
                 ('ingredients', items),
                 ('steps', steps),
             ]))
+            if not optional:
+                data['parts'][i]['optional'] = optional
 
         del data['ingredients']
         del data['steps']
     else:
-        data['ingredients'] = data['ingredients']['list']
-        data['steps'] = data['steps']['list']
+        pass
+        # data['ingredients'] = data['ingredients']['list']
+        # data['steps'] = data['steps']['list']
 
     del data['has_parts']
+
+    data.move_to_end('tips')
+    data.move_to_end('notes')
+    data.move_to_end('changelog')
 
     return data
