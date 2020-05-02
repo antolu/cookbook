@@ -82,7 +82,7 @@ def download_yaml(request, pk):
     formatted_data = format_for_output(data)
 
     response = HttpResponse(content_type='text/yaml')
-    response['Content-Disposition'] = 'attachment; filename="{}.yml"'.format(recipe.title).replace('-', '_')
+    response['Content-Disposition'] = 'attachment; filename="{}.yml"'.format(recipe.title.lower().replace(' ', '_'))
 
     yaml.dump(formatted_data, response)
 
@@ -93,7 +93,7 @@ def download_tex(request, pk):
     recipe = Recipe.objects.get(pk=pk)
 
     response = HttpResponse(content_type='text/tex')
-    response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.title).replace('-', '_')
+    response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.title.lower().replace(' ', '_'))
 
     t = loader.get_template('cookbook/recipe_template.tex')
 
@@ -120,6 +120,6 @@ def download_pdf(request, pk):
 
     out_pdf = out_base + '.pdf'
 
-    response = FileResponse(open(out_pdf, 'rb'), as_attachment=True, filename='{}.pdf'.format(recipe.title))
+    response = FileResponse(open(out_pdf, 'rb'), as_attachment=True, filename='{}.pdf'.format(recipe.title.lower().replace(' ', '_')))
 
     return response
