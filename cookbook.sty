@@ -1,80 +1,143 @@
-\NeedsTeXFormat{LaTeX2e}%[1994/12/01]
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
 \ProvidesPackage{cookbook}[A typesetter for baking and cooking recipes]
 
 \DeclareRelease{}{2020-02-28}{}
 \DeclareCurrentRelease{}{2020-02-28}
 
-% \RequirePackage[urw-garamond]{mathdesign}
 \RequirePackage[T1]{fontenc}
-\RequirePackage[utf8]{inputenc}
+% \RequirePackage[utf8]{inputenc}
 \RequirePackage{graphicx}
 \RequirePackage{etoolbox}
 \RequirePackage{xparse}
 \RequirePackage{enumitem}
-\RequirePackage[table,x11names]{xcolor}
-\RequirePackage[a4paper, left=1.5in, top=1in]{geometry}
+\RequirePackage[table,x11names,dvipsnames]{xcolor}
+\RequirePackage[a4paper, left=1in, top=1in]{geometry}
 \RequirePackage[swedish, english]{babel}
 \RequirePackage{nicefrac}
 \RequirePackage{fancyhdr}
 \RequirePackage{lastpage}
 \RequirePackage{wrapfig}
+\RequirePackage{fontspec}
+\RequirePackage{titlesec}
+\RequirePackage{multicol}
+\RequirePackage[skins,breakable]{tcolorbox}
+\RequirePackage[weather,clock]{ifsym}
+\RequirePackage{newunicodechar}
 
+
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+% 
+% Font pairings
+%
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+% Raleway
+% IM Fell English
+% Roboto slab
+
+% Francois One
+% Arsenal
+% Trykker
+
+% Playfair display
+% Droid sans
+% Amiko
+
+\defaultfontfeatures{ Path = ./fonts/, Ligatures = TeX}
+\RequirePackage{fontawesome}
+
+\newfontfamily{\raleway}{Raleway-Bold}
+\newfontfamily{\thirdfont}{Trykker-Regular}
+\newfontfamily{\robotoslab}{RobotoSlab-Regular}
+\setmainfont{Trykker-Regular}
+
+\newcommand\fakesc[1]{\uppercase{{\scriptsize #1}}}
+
+\titleformat*{\section}{\huge\robotoslab\bfseries}
+\titleformat*{\subsection}{\Large\robotoslab\bfseries\uppercase}
+\titleformat*{\subsubsection}{\scshape\thirdfont\scshape}
+
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%
+% Options
+%
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+\providecommand{\image}[1]{\def\internalimage{#1}}
+\renewcommand{\description}[1]{\def\internaldescription{#1}}
+\providecommand{\yields}[1]{\def\internalyields{#1}}
+\providecommand{\temperature}[1]{\def\internaltemperature{#1}}
+\providecommand{\cookingtime}[1]{\def\internalcookingtime{#1}}
+
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%
+% New environments
+%
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+\newcommand\sidebar[2]{
+\begin{tcolorbox}[
+    blanker,
+    width=0.64\textwidth,enlarge left by=0.36\textwidth,
+    before skip=6pt,
+    breakable,
+    overlay unbroken and first={%
+      \node[inner sep=0pt,outer sep=0pt,text width=0.30\textwidth,
+        align=none,
+        below right]
+        at ([xshift=-0.36\textwidth]frame.north west)
+    {%
+    \vspace{-2em}
+    #1
+    };}]%
+    #2
+\end{tcolorbox}
+}
+
+\newenvironment{steps}{
+    \begin{itemize}[nolistsep,leftmargin=0.08\linewidth]
+}{
+    \end{itemize}
+}
+
+\newenvironment{compactlist}{
+    \begin{itemize}[nolistsep,leftmargin=*]
+}{
+    \end{itemize}
+}
+       
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%
+% New commands
+%
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 \providecommand\degrees{\ensuremath{^\circ}C}
 \providecommand\half{\nicefrac{1}{2}}
 
+\newcommand{\pacman}{\tikz[baseline=.1em,scale=.6]{
+    \useasboundingbox (.02,0) rectangle (.6,.6);
+    \draw [fill=white] (.3,.3) -- ++(25:.3) arc (+25:+335:.3) -- cycle;
+    \draw (0.34,.39) node[anchor=south] {.};
+}}
 
-\providecommand\ingredientrule{{\color{lightgray}\rule{0.75\linewidth}{1pt}}}
-
-\providecommand{\image}[1]{
-    \def\@img{#1}
-}
-\ifundef{\@img}{
-    \def\@img{}
-}
+\providecommand{\ingredient}{\item[]}
+\providecommand{\ingredientpart}[1]{\raleway \subsubsection*{#1}}
 
 \newcounter{step}
-
-\providecommand{\image}[1]{\def\@img#1}
-\providecommand{\yields}[1]{\def\@yield#1}
-
-\providecommand{\ingredient}{\scshape \item[] }%\\\ingredientrule}
-\providecommand{\ingredientpart}[1]{\scshape \subsubsection*{#1}}
-
-\newenvironment{ingredients}{
-    \begin{itemize}[noitemsep]
-        }{
-        \end{itemize}
-        }
-        
-        \providecommand{\step}{\scshape \stepcounter{step}\item[\thestep] ~ }
-        \providecommand{\steppart}[1]{\scshape \subsubsection*{#1}}
-        
-        \newenvironment{steps}{
-    \begin{enumerate}
-        }{
-        \end{enumerate}
-        }
+\providecommand{\step}{\scshape \stepcounter{step}\item[\thestep] }
+\providecommand{\steppart}[1]{\scshape \subsubsection*{#1}}
         
 \providecommand{\noteitem}{\item[]}
 
-\newenvironment{notes}{
-    \begin{itemize}
-        }{
-        \end{itemize}
-}
-
-
-
-\newenvironment{changelog}{
-    \begin{itemize}
-        }{
-        \end{itemize}
-        }
-        
 \ProcessOptions\relax
-        
-% Header and footer
+
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%
+% Page layout
+%
+% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 \pagestyle{fancy}
 
 \lhead{\@title}
@@ -82,42 +145,60 @@
 
 \lfoot{\textcopyright ~ Anton Lu 2020}
 
-% \makeatletter
-% \def\@maketitle{%
-%   \newpage
-%   \null
-%   \vskip 2em%
-%   \begin{center}%
-%   \let \footnote \thanks
-%     {\LARGE \@title \par}%
-%     \vskip 1.5em%
-%     {\large
-%       \lineskip .5em%
-%       \@img
-%     }
-%     \vskip 1em%
-%     %{\large \@date}%
-%   \end{center}%
-%   \par
-%   \vskip 1.5em}
-% \makeatother
-% \makeatletter\def\@img{}
-
-\def\img{\@img}
-\makeatletter
-\providecommand{\makeheader}{
-        \section*{\@title}
-        \ifx\@img\empty\else
-        \begin{wrapfigure}[-10]{r}{0.4\linewidth}\centering
-            \vspace{-44pt}
-            \fbox{\includegraphics[width=\linewidth]{\@img}}
-        \end{wrapfigure}
-        \fi
-    }
-\makeatother
-
 \let\oldappendix\appendix
-
 \def\appendix{\clearpage\oldappendix}
 
-\ProcessOptions\relax
+\makeatletter
+\providecommand{\makeheader}{
+    \begin{center}
+        \fontsize{36}{34}\selectfont\raleway\textbf{\@title}\\[-8pt]
+        \textcolor{TealBlue}{\rule{0.75\textwidth}{5pt}}
+    \end{center}
+    \vspace{8pt}
+    % \ifx\@img\empty\else
+    % \begin{wrapfigure}[-10]{r}{0.4\linewidth}\centering
+    %     \vspace{-44pt}
+    %     \fbox{\includegraphics[width=\linewidth]{\@img}}
+    % \end{wrapfigure}
+    % \fi
+}
+
+\makeatother
+
+\providecommand{\makerecipe}{
+    \begin{document}
+        \makeheader
+        \ifdef{\internaldescription}{%
+            {\robotoslab\selectfont\internaldescription} \\
+        }{}
+
+        \sidebar{\\[19pt]
+        \ifdef{\internalyields}{%
+            \pacman ~ Makes \internalyields \\[2pt]
+        }{}
+        \ifdef{\internalcookingtime}{%
+            {\small \Interval} ~ \internalcookingtime \\[2pt]
+        }{}
+        \ifdef{\internaltemperature}{
+            \hspace*{0.3em}\Thermo{6} ~ \internaltemperature \degrees
+        }{}
+        \subsection*{Ingredients}
+        \ingredients
+
+        \ifdef{\notes}{        
+            \subsection*{Notes}
+            \notes
+        }{}
+        \ifdef{\tips}{
+            \subsubsection*{Tips}
+            \tips
+        }{}
+        }{%
+            \subsection*{Instructions}
+            \instructions
+        }
+        \appendix
+        \section*{Changelog}
+        \changelog
+    \end{document}
+}

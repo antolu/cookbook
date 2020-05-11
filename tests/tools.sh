@@ -68,13 +68,32 @@ installTeXLive() {
     echo 'pathmunge /usr/local/texlive/2020/bin/x86_64-linux' > /etc/profile.d/customshell.sh
 
     /usr/local/texlive/2020/bin/x86_64-linux/tlmgr install \
-        etoolbox \
-        enumitem \
-        xcolor \
         babel-swedish \
-        units \
+        enumitem \
+        environ \
+        etoolbox \
+        fontspec \
+        ifsym \
         lastpage \
-        wrapfig
+        latexindent \
+        latexmk \
+        newunicodechar \
+        pgf \
+        tcolorbox \
+        titlesec \
+        trimspaces \
+        units \
+        wrapfig \
+        xcolor \
+        xetex
+}
+
+installTeXTools() {
+    /usr/local/texlive/2020/bin/x86_64-linux/tlmgr install \
+    latexindent
+
+    yum install perl perl-open
+    cpan install Log::Log4perl Log::Dispatch::File YAML::Tiny
 }
 
 configureSupervisor() {
