@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import logging
 import sys
 
-log = logging.getLogger('log')
+log = logging.getLogger(__name__)
 
 
 def get_args():

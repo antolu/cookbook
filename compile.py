@@ -2,15 +2,21 @@
 
 import sys
 sys.path.insert(0, 'django/cookbook')
+sys.path.append('django')
 import logging
-from os import path
+from os import path, environ
 import pprint
 
 from util import get_args
-from parsers import parse_file, dict_to_json
-from file_io import compile, write_recipes, get_img, make_output_dir
+from parsers import parse_file, dict_to_json, format_for_output
+from file_io import compile, write_recipe, get_img, make_output_dir
+environ.setdefault("DJANGO_SETTINGS_MODULE", "webapps.settings")
 
-log = logging.getLogger('log')
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+
+
+log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -30,35 +36,31 @@ def main():
     in_file = path.join(root_dir, args.source_dir, basename + '.yml')
 
     io = {'root_dir' : root_dir, 'basename' : basename, 'in_file' : in_file, 'img_dir' : args.image_dir, 'output_dir' : args.output_dir}
-    options = {'hide_notes' : args.hide_notes, 'hide_changelog' : args.hide_changelog, 'source_only' : args.source_only}
-    data = dict()
 
     with open(in_file, 'r') as f:
         recipe_data = parse_file(f)
-        # data = load(f, Loader=FullLoader)
 
-    pp.pprint(recipe_data)
+    # pp.pprint(recipe_data)
 
-    print('-'*90)
-    print('JSONd data')
+    # print('-'*90)
+    # print('JSONd data')
 
-    output = dict_to_json(recipe_data)
-    pp.pprint(output)
-    # recipe_data = parse_recipes(args, data)
+    # output = format_for_output(recipe_data)
+    # pp.pprint(output)
 
-    # return 0
-
-    get_img(recipe_data, io)
+    # get_img(recipe_data, io)
 
     make_output_dir(io)
 
-    files_written = write_recipes(recipe_data, io, options)
+    out_filename = path.join(io['output_dir'], '{}.tex'.format(io['basename']))
+
+    write_recipe(recipe_data, out_filename)
 
     if args.source_only:
         sys.exit(0)
 
-    # run pdflatex
-    compile(files_written)
+    # run latexmk
+    compile(path.splitext(out_filename)[0])
 
 
 if __name__ == '__main__':

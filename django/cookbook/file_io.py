@@ -1,12 +1,15 @@
 import logging
 from glob import glob
 from os import path, mkdir, remove
-from os import system as shell
+from os import popen as shell
 from sys import exit
+
+from django.template import loader
+from django.shortcuts import render
 
 from shutil import which
 
-log = logging.getLogger('log')
+log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
@@ -62,90 +65,24 @@ def make_output_dir(io: dict):
         mkdir(io['output_dir'])
 
 
-def write_recipes(data: dict, io: dict, options: dict):
-    files_written = list()
+def write_recipe(data: dict, filename: str = None, raw_buffer=False):
+    t = loader.get_template('cookbook/recipe_template.tex')
 
-    for language, language_data in data.items():
-        out_filename = path.join(io['output_dir'],
-                                 '{}.{}.tex'.format(io['basename'], language))
+    buffer = t.render({'recipe': data})
+    if raw_buffer:
+        log.info('Returning raw buffer')
+        return buffer
 
-        with open(out_filename, 'w') as f:
-            write = get_writer(f)
-            log.info("Writing file {}".format(out_filename))
+    if not filename:
+        raise RuntimeError('Filename not specified.')
 
-            write('\\documentclass[a4paper, 11pt]{article}\n')
-            write('\\usepackage{cookbook}\n')
+    with open(filename, 'w') as f:
+        f.write(buffer)
 
-            write('\\title{{{}}}\n'.format(language_data['name']))
-
-            if 'yields' in language_data and language_data['yields'] is not None:
-                write('\\yields{{ {} }}\n'.format(language_data['yields']))
-            else:
-                log.info('Field yield does not exist.')
-
-            if 'description' in language_data and language_data['description']:
-                write('\\description{{ {} }}\n'.format(language_data['description']))
-            else:
-                log.info('Field description does not exist.')
-
-            if 'temperature' in language_data and language_data['temperature']:
-                write('\\temperature{{ {} }}\n'.format(language_data['temperature']))
-            else:
-                log.info('Field temperature does not exist.')
-
-            if 'cookingtime' in language_data and language_data['cookingtime']:
-                write('\\cookingtime{{ {} }}\n'.format(language_data['cookingtime']))
-            else:
-                log.info('Field cookingtime does not exist.')
-
-            if language_data['img'] is not None:
-                write('\\image{{ {} }}'.format(language_data['img']))
-
-            if language_data['has_changelog'] and language_data['changelog']:
-                write('\\date{{ {} }}'.format(language_data['changelog'][0]['date']))
-
-            write('\\providecommand\\ingredients{%')
-            for ingredient_part in language_data['ingredients']:
-                write_ingredients(ingredient_part, f)
-            write('}')
-
-            write()
-
-            write('\\providecommand\\instructions{%')
-            for step_part in language_data['steps']:
-                write_steps(step_part, f)
-            write('}')
-
-            write()
-
-            if language_data['has_notes'] and not options['hide_notes']:
-                write('\\providecommand\\notes{%')
-                with Environment(f, 'compactlist') as e:
-                    for note in language_data['note']:
-                        write('\t\\noteitem {}'.format(note))
-                write('}')
-
-            if language_data['has_changelog'] and not options['hide_changelog']:
-                write('\\providecommand\\changelog{%')
-                with Environment(f, 'changelog') as e:
-                    for change in language_data['changelog']:
-                        entry = '{}\n'.format(change['date'])
-                        if not isinstance(change['change'], list):
-                            entry += change['change']
-                        else:
-                            for line in change['change']:
-                                entry += '\t{}\n'.format(line)
-                        write('\t\\noteitem {}'.format(entry))
-                write('}')
-
-            files_written.append(out_filename)
-
-    log.info('Written files {}'.format(' '.join(files_written)))
-
-    return files_written
+    log.info('Written file {}'.format(filename))
 
 
-def write_ingredients(ingredients, f):
+def write_ingredients(ingredients, f) -> None:
     write = get_writer(f)
 
     if ingredients['name'] or ingredients['name']:
@@ -156,7 +93,7 @@ def write_ingredients(ingredients, f):
             write('\t\\ingredient {}'.format(ingredient))
 
 
-def write_steps(steps: dict, f):
+def write_steps(steps: dict, f) -> None:
     write = get_writer(f)
 
     if steps['name'] or steps['name']:
@@ -167,33 +104,34 @@ def write_steps(steps: dict, f):
             write('\t\\step {}'.format(step))
 
 
-def compile(files: list):
+def compile(file: str) -> None:
     """
     Run pdflatex
 
     param : files The files to run pdflatex on
 
     """
-    if which('pdflatex') is None:
-        log.error('pdflatex could not be found. Leaving Latex source files as-is.')
+    if which('latexmk') is None or which('xelatex') is None:
+        log.error('xelatex or latexmk could not be found. Leaving Latex source files as-is.')
         exit(2)
     else:
-        for f in files:
-            output_dir = path.split(f)[0]
-            command = r'latexmk -xelatex -output-directory={} {}'.format(
-                output_dir.replace(' ', '\\ '), f.replace(' ', '\\ '))
-            log.info('Running command {}'.format(command))
-            shell(command)
+        output_dir = path.split(file)[0]
+        command = r'latexmk -xelatex -output-directory={} {}'.format(
+            output_dir.replace(' ', '\\ '), file.replace(' ', '\\ '))
+        log.info('Running command {}'.format(command))
+        code = shell(command).read()
+        if code != '0':
+            log.error('latexmk failed. Check the log file for errors')
+            return
 
         log.info('PDF files successfully generated. ')
         log.info('Cleaning up')
 
         to_delete = list()
-        for f in files:
-            basename = path.splitext(path.basename(f))[0]
-            to_delete.append(path.join(output_dir, '{}.log'.format(basename)))
-            to_delete.append(path.join(output_dir, '{}.aux'.format(basename)))
+        basename = path.splitext(path.basename(file))[0]
+        to_delete.append(path.join(output_dir, '{}.log'.format(basename)))
+        to_delete.append(path.join(output_dir, '{}.aux'.format(basename)))
 
-        for f in to_delete:
-            log.debug('Deleting file {}'.format(path.basename(f)))
-            remove(f)
+        for file in to_delete:
+            log.debug('Deleting file {}'.format(path.basename(file)))
+            remove(file)

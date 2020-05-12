@@ -16,7 +16,7 @@ from .files import handle_uploaded_file
 from .forms import UploadRecipeForm
 from .models import Recipe
 from .parsers import recipe_to_dict, format_for_output
-from .file_io import compile
+from .file_io import compile, write_recipe
 
 from pprint import pformat
 
@@ -95,11 +95,9 @@ def download_tex(request, pk):
     response = HttpResponse(content_type='text/tex')
     response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.title.lower().replace(' ', '_'))
 
-    t = loader.get_template('cookbook/recipe_template.tex')
-
     data = format_for_output(recipe_to_dict(recipe))
 
-    response.write(t.render({'recipe': data}))
+    response.write(write_recipe(data, raw_buffer=True))
 
     return response
 
@@ -107,18 +105,15 @@ def download_tex(request, pk):
 def download_pdf(request, pk):
     recipe = Recipe.objects.get(pk=pk)
 
-    t = loader.get_template('cookbook/recipe_template.tex')
-
     data = format_for_output(recipe_to_dict(recipe))
 
-    out_base = path.join('output', recipe.title)
+    out_base = path.join('output', recipe.title).lower()
     out_tex = out_base + '.tex'
-    with open(out_tex, 'w') as f:
-        f.write(t.render({'recipe': data}))
-
-    compile([out_tex])
-
     out_pdf = out_base + '.pdf'
+
+    write_recipe(out_tex, data)
+
+    compile(out_tex)
 
     response = FileResponse(open(out_pdf, 'rb'), as_attachment=True, filename='{}.pdf'.format(recipe.title.lower().replace(' ', '_')))
 
