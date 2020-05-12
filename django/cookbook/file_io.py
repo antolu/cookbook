@@ -76,57 +76,67 @@ def write_recipes(data: dict, io: dict, options: dict):
             write('\\documentclass[a4paper, 11pt]{article}\n')
             write('\\usepackage{cookbook}\n')
 
-            if 'name' in language_data and language_data['name'] is not None:
-                write('\\title{{{}}}\n'.format(language_data['name']))
-            else:
-                log.warning('No recipe name given. Using file name {} as title.'.format(io['basename']))
-                write('\\title{{{}}}\n'.format(io['basename']).replace('_', '\_'))
+            write('\\title{{{}}}\n'.format(language_data['name']))
 
             if 'yields' in language_data and language_data['yields'] is not None:
                 write('\\yields{{ {} }}\n'.format(language_data['yields']))
             else:
-                log.info('field yield does not exist')
+                log.info('Field yield does not exist.')
+
+            if 'description' in language_data and language_data['description']:
+                write('\\description{{ {} }}\n'.format(language_data['description']))
+            else:
+                log.info('Field description does not exist.')
+
+            if 'temperature' in language_data and language_data['temperature']:
+                write('\\temperature{{ {} }}\n'.format(language_data['temperature']))
+            else:
+                log.info('Field temperature does not exist.')
+
+            if 'cookingtime' in language_data and language_data['cookingtime']:
+                write('\\cookingtime{{ {} }}\n'.format(language_data['cookingtime']))
+            else:
+                log.info('Field cookingtime does not exist.')
 
             if language_data['img'] is not None:
-                write('\\image{{{}}}'.format(language_data['img']))
+                write('\\image{{ {} }}'.format(language_data['img']))
 
-            if language_data['has_changelog']:
-                write('\\date{{{}}}'.format(language_data['changelog'][0]['date']))
+            if language_data['has_changelog'] and language_data['changelog']:
+                write('\\date{{ {} }}'.format(language_data['changelog'][0]['date']))
 
-            with Environment(f, 'document') as e:
+            write('\\providecommand\\ingredients{%')
+            for ingredient_part in language_data['ingredients']:
+                write_ingredients(ingredient_part, f)
+            write('}')
 
-                write('\\maketitle')
+            write()
 
-                write('\\subsection*{Ingredients}\n')
+            write('\\providecommand\\instructions{%')
+            for step_part in language_data['steps']:
+                write_steps(step_part, f)
+            write('}')
 
-                for ingredient_part in language_data['ingredients']:
-                    write_ingredients(ingredient_part, f)
+            write()
 
-                write()
+            if language_data['has_notes'] and not options['hide_notes']:
+                write('\\providecommand\\notes{%')
+                with Environment(f, 'compactlist') as e:
+                    for note in language_data['note']:
+                        write('\t\\noteitem {}'.format(note))
+                write('}')
 
-                write('\\subsection*{Instructions}\n')
-                for step_part in language_data['steps']:
-                    write_steps(step_part, f)
-
-                write()
-
-                if language_data['has_notes'] and not options['hide_notes']:
-                    write('\\section{Notes and tips}\n')
-                    with Environment(f, 'itemize') as e:
-                        for note in language_data['note']:
-                            write('\t\\noteitem {}'.format(note))
-
-                if language_data['has_changelog'] and not options['hide_changelog']:
-                    write('\\appendix{Changelog}')
-                    with Environment(f, 'changelog') as e:
-                        for change in language_data['changelog']:
-                            entry = '{}\n'.format(change['date'])
-                            if not isinstance(change['change'], list):
-                                entry += change['change']
-                            else:
-                                for line in change['change']:
-                                    entry += '\t{}\n'.format(line)
-                            write('\t\\noteitem {}'.format(entry))
+            if language_data['has_changelog'] and not options['hide_changelog']:
+                write('\\providecommand\\changelog{%')
+                with Environment(f, 'changelog') as e:
+                    for change in language_data['changelog']:
+                        entry = '{}\n'.format(change['date'])
+                        if not isinstance(change['change'], list):
+                            entry += change['change']
+                        else:
+                            for line in change['change']:
+                                entry += '\t{}\n'.format(line)
+                        write('\t\\noteitem {}'.format(entry))
+                write('}')
 
             files_written.append(out_filename)
 
@@ -139,26 +149,22 @@ def write_ingredients(ingredients, f):
     write = get_writer(f)
 
     if ingredients['name'] or ingredients['name']:
-        write('\\ingredientpart{{{}}}'.format(ingredients['name']))
+        write('\\ingredientpart{{ {} }}'.format(ingredients['name']))
 
-    with Environment(f, 'ingredients') as e:
+    with Environment(f, 'compactlist') as e:
         for ingredient in ingredients['list']:
             write('\t\\ingredient {}'.format(ingredient))
-
-    write()
 
 
 def write_steps(steps: dict, f):
     write = get_writer(f)
 
     if steps['name'] or steps['name']:
-        write('\\steppart{{{}}}'.format(steps['name']))
+        write('\\steppart{{ {} }}'.format(steps['name']))
 
     with Environment(f, 'steps') as e:
         for step in steps['list']:
             write('\t\\step {}'.format(step))
-
-    write()
 
 
 def compile(files: list):
@@ -174,7 +180,7 @@ def compile(files: list):
     else:
         for f in files:
             output_dir = path.split(f)[0]
-            command = r'pdflatex -output-directory={} {}'.format(
+            command = r'latexmk -xelatex -output-directory={} {}'.format(
                 output_dir.replace(' ', '\\ '), f.replace(' ', '\\ '))
             log.info('Running command {}'.format(command))
             shell(command)

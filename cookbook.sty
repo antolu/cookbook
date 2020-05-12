@@ -44,7 +44,6 @@
 % Amiko
 
 \defaultfontfeatures{ Path = ./fonts/, Ligatures = TeX}
-\RequirePackage{fontawesome}
 
 \newfontfamily{\raleway}{Raleway-Bold}
 \newfontfamily{\thirdfont}{Trykker-Regular}
@@ -95,13 +94,13 @@
 }
 
 \newenvironment{steps}{
-    \begin{itemize}[nolistsep,leftmargin=0.08\linewidth]
+    \begin{itemize}[itemsep=2pt,leftmargin=0.08\linewidth]
 }{
     \end{itemize}
 }
 
 \newenvironment{compactlist}{
-    \begin{itemize}[nolistsep,leftmargin=*]
+    \begin{itemize}[itemsep=1pt,leftmargin=*]
 }{
     \end{itemize}
 }
