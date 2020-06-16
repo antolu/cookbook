@@ -1,24 +1,19 @@
 import json
 import logging
 from os import path
-from os import system as shell
 import traceback
 from collections import OrderedDict
 
 import yaml
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
-from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
-from django.template import loader
 
 from .files import handle_uploaded_file
 from .forms import UploadRecipeForm
 from .models import Recipe
-from .parsers import recipe_to_dict, format_for_output
+from qml.parsers import recipe_to_dict, format_for_output
 from .file_io import compile, write_recipe
-
-from pprint import pformat
 
 log = logging.getLogger(__name__)
 

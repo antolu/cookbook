@@ -8,8 +8,8 @@ from os import path, environ
 import pprint
 
 from util import get_args
-from parsers import parse_file, dict_to_json, format_for_output
-from file_io import compile, write_recipe, get_img, make_output_dir
+from django.qml.parsers import parse_file
+from file_io import compile, write_recipe, make_output_dir
 environ.setdefault("DJANGO_SETTINGS_MODULE", "webapps.settings")
 
 from django.core.wsgi import get_wsgi_application
@@ -37,10 +37,11 @@ def main():
 
     io = {'root_dir' : root_dir, 'basename' : basename, 'in_file' : in_file, 'img_dir' : args.image_dir, 'output_dir' : args.output_dir}
 
-    with open(in_file, 'r') as f:
+    with open(args.recipe, 'r') as f:
         recipe_data = parse_file(f)
 
-    # pp.pprint(recipe_data)
+    pp.pprint(recipe_data)
+    exit(0)
 
     # print('-'*90)
     # print('JSONd data')

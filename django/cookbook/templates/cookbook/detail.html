@@ -12,59 +12,55 @@
 {% if recipe.yields %}
     <p>Yields: {{ recipe.yields }}</p>
 {% endif %}
-{% if recipe.has_parts %}
-    <h2>Ingredients</h2>
-    {% for ingredientpart in recipe.ingredients %}
-        <h3>{{ ingredientpart.name }}</h3>
-        <ul>
-            {% for ingredient in ingredientpart.list %}
-                <li>{{ ingredient }}</li>
-            {% endfor %}
-        </ul>
-    {% endfor %}
-    <h2>Instructions</h2>
-    {% for steppart in recipe.instructions %}
-        <h3>{{ steppart.name }}</h3>
-        <ol>
-            {% for step in steppart.list %}
-                <li>{{ step }}</li>
-            {% endfor %}
-        </ol>
-    {% endfor %}
-{% else %}
+{% if recipe.cooking_time %}
+    <p>Cooking time: {{ recipe.cooking_time }}</p>
+    {% if recipe.description %}
+    {% endif %}
+    <p>{{ recipe.description }}</p>
+{% endif %}
 <h2>Ingredients</h2>
 <ul>
-    {% for ingredient in recipe.ingredients %}
-    <li>{{ ingredient }}</li>
+    {% for part in recipe.ingredients %}
+        {% if part.name %}
+            <h3>{{ part.name }}</h3>
+        {% endif %}
+        {% for ingredient in part.list %}
+            <li>{{ ingredient }}</li>
+        {% endfor %}
     {% endfor %}
 </ul>
 <h2>Instructions</h2>
 <ol>
-    {% for step in recipe.instructions %}
-    <li>
-        {{ step }}
-    </li>
+    {% for part in recipe.instructions %}
+        {% if part.name %}
+            <h3>{{ part.name }}</h3>
+        {% endif %}
+        {% for step in part.list %}
+            <li>
+                {{ step }}
+            </li>
+        {% endfor %}
     {% endfor %}
 </ol>
-{% endif %}
+{#{% endif %}#}
 
-    <div id="changelog" style="display: none;">
+<div id="changelog" style="display: none;">
     <h2>Changelog</h2>
     <ul>
         {% for change in recipe.changelog %}
-        <li>
-            Date: {{ change.date }}
-            <ul>
-                {% for comment in change.change %}
-                <li>{{ comment }}</li>
-                {% endfor %}
-            </ul>
-        </li>
+            <li>
+                Date: {{ change.date }}
+                <ul>
+                    {% for comment in change.change %}
+                        <li>{{ comment }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
         {% endfor %}
     </ul>
-    </div>
+</div>
 
-    <button onclick="changeLogButton()">Toggle changelog</button>
+<button onclick="changeLogButton()">Toggle changelog</button>
 
 {#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
 {#        {% csrf_token %}#}
@@ -83,14 +79,14 @@
 </body>
 
 <script>
-function changeLogButton() {
-  var x = document.getElementById("changelog");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-}
+    function changeLogButton() {
+        var x = document.getElementById("changelog");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
 </script>
 
 </html>
