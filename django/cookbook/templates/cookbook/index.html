@@ -1,33 +1,39 @@
-<!DOCTYPE html>
-<html>
+{% extends 'cookbook/base.html' %}
 
-<head>
-    <meta charset="utf-8">
-    <title>Cookbook index page</title>
-</head>
+{% block title %}Cookbook index page{% endblock %}
 
-<body>
-    {% if recipe_list %}
-    <ul style="list-style-type:none;">
-        {% for recipe in object_list %}
-        <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.title }}</a></li>
-        {% endfor %}
-    </ul>
+{% block content %}
+    {% if user.is_authenticated %}
+        Hi {{ user.username }}
+        <p><a href="{% url 'cookbook:logout' %}">Logout</a></p>
     {% else %}
-    <p>No recipes are available.</p>
+        <p>You are not logged in</p>
+        Login <a href="{% url 'cookbook:login' %}">here</a>.
     {% endif %}
-    <p>Upload a new recipe here!</p>
-    <form enctype="multipart/form-data" method="post" action="{% url 'cookbook:upload_recipe' %}">
-        {% csrf_token %}
-        <input type="file" id="recipefile" name="file" multiple>
-        <input type="submit">
-    </form>
-    {% if upload_success %}
-    <p>{{ upload_success }}</p>
-    {% endif %}
-    {% if upload_error != None %}
-    <p>{{ upload_error }}</p>
-    {% endif %}
-</body>
 
-</html>
+    {% if recipe_list %}
+        <ul style="list-style-type:none;">
+            {% for recipe in recipe_list %}
+                <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.title }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No recipes are available.</p>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <p>Upload a new recipe here!</p>
+        <form enctype="multipart/form-data" method="post" action="{% url 'cookbook:upload_recipe' %}">
+            {% csrf_token %}
+            <input type="file" id="recipefile" name="file" multiple>
+            <input type="submit">
+        </form>
+        {% if upload_success %}
+            <p>{{ upload_success }}</p>
+        {% endif %}
+        {% if upload_error != None %}
+            <p>{{ upload_error }}</p>
+        {% endif %}
+    {% endif %}
+
+{% endblock %}

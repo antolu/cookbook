@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -10,4 +10,5 @@ urlpatterns = [
     path('download_yaml/<uuid:pk>', views.download_yaml, name='download_yaml'),
     path('download_tex/<uuid:pk>', views.download_tex, name='download_tex'),
     path('download_pdf/<uuid:pk>', views.download_pdf, name='download_pdf'),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]

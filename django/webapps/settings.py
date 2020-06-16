@@ -25,8 +25,8 @@ SECRET_KEY = '!nj_%%v$$51s=q5^!vgs&^(y%&%ell=e_wh*@g$b6=w4fdvs1u'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', 'localhost']
-
+# ALLOWED_HOSTS = ['0.0.0.0', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -145,3 +145,6 @@ LOGGING = {
         },
     },
 }
+
+LOGIN_REDIRECT_URL = 'cookbook:index'
+LOGOUT_REDIRECT_URL = 'cookbook:index'

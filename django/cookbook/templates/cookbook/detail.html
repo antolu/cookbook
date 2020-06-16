@@ -1,82 +1,80 @@
-<!DOCTYPE html>
-<html>
+{% extends 'cookbook/base.html' %}
 
-<head>
-    <meta charset="utf-8">
-    <title> {{ recipe.title }} </title>
-</head>
+{% block title %}
+    {{ recipe.title }}
+{% endblock %}
 
-<body>
-<h1>{{ recipe.title }}</h1>
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-{% if recipe.yields %}
-    <p>Yields: {{ recipe.yields }}</p>
-{% endif %}
-{% if recipe.cooking_time %}
-    <p>Cooking time: {{ recipe.cooking_time }}</p>
-    {% if recipe.description %}
+{% block content %}
+    <h1>{{ recipe.title }}</h1>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if recipe.yields %}
+        <p>Yields: {{ recipe.yields }}</p>
     {% endif %}
-    <p>{{ recipe.description }}</p>
-{% endif %}
-<h2>Ingredients</h2>
-<ul>
-    {% for part in recipe.ingredients %}
-        {% if part.name %}
-            <h3>{{ part.name }}</h3>
+    {% if recipe.cooking_time %}
+        <p>Cooking time: {{ recipe.cooking_time }}</p>
+        {% if recipe.description %}
         {% endif %}
-        {% for ingredient in part.list %}
-            <li>{{ ingredient }}</li>
-        {% endfor %}
-    {% endfor %}
-</ul>
-<h2>Instructions</h2>
-<ol>
-    {% for part in recipe.instructions %}
-        {% if part.name %}
-            <h3>{{ part.name }}</h3>
-        {% endif %}
-        {% for step in part.list %}
-            <li>
-                {{ step }}
-            </li>
-        {% endfor %}
-    {% endfor %}
-</ol>
-{#{% endif %}#}
-
-<div id="changelog" style="display: none;">
-    <h2>Changelog</h2>
+        <p>{{ recipe.description }}</p>
+    {% endif %}
+    <h2>Ingredients</h2>
     <ul>
-        {% for change in recipe.changelog %}
-            <li>
-                Date: {{ change.date }}
-                <ul>
-                    {% for comment in change.change %}
-                        <li>{{ comment }}</li>
-                    {% endfor %}
-                </ul>
-            </li>
+        {% for part in recipe.ingredients %}
+            {% if part.name %}
+                <h3>{{ part.name }}</h3>
+            {% endif %}
+            {% for ingredient in part.list %}
+                <li>{{ ingredient }}</li>
+            {% endfor %}
         {% endfor %}
     </ul>
-</div>
+    <h2>Instructions</h2>
+    <ol>
+        {% for part in recipe.instructions %}
+            {% if part.name %}
+                <h3>{{ part.name }}</h3>
+            {% endif %}
+            {% for step in part.list %}
+                <li>
+                    {{ step }}
+                </li>
+            {% endfor %}
+        {% endfor %}
+    </ol>
+    {#{% endif %}#}
 
-<button onclick="changeLogButton()">Toggle changelog</button>
+    <div id="changelog" style="display: none;">
+        <h2>Changelog</h2>
+        <ul>
+            {% for change in recipe.changelog %}
+                <li>
+                    Date: {{ change.date }}
+                    <ul>
+                        {% for comment in change.change %}
+                            <li>{{ comment }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 
-{#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
-{#        {% csrf_token %}#}
-{#        {% for choice in question.choice_set.all %}#}
-{#        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">#}
-{#        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>#}
-{#        {% endfor %}#}
-{#        <input type="submit" value="Vote">#}
-{#    </form>#}
-<br>
-<a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Download recipe yaml source</a>
-<br>
-<a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Download recipe tex source</a>
-<br>
-<a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Download recipe PDF</a>
-</body>
+    <button onclick="changeLogButton()">Toggle changelog</button>
+
+    {#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
+    {#        {% csrf_token %}#}
+    {#        {% for choice in question.choice_set.all %}#}
+    {#        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">#}
+    {#        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>#}
+    {#        {% endfor %}#}
+    {#        <input type="submit" value="Vote">#}
+    {#    </form>#}
+    <br>
+    <a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Download recipe yaml source</a>
+    <br>
+    <a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Download recipe tex source</a>
+    <br>
+    <a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Download recipe PDF</a>
+{% endblock %}
 
 <script>
     function changeLogButton() {
@@ -89,4 +87,3 @@
     }
 </script>
 
-</html>
