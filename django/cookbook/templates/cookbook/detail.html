@@ -6,6 +6,7 @@
 
 {% block content %}
     <h1>{{ recipe.title }}</h1>
+    <div id="information">
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
     {% if recipe.yields %}
         <p>Yields: {{ recipe.yields }}</p>
@@ -16,6 +17,8 @@
         {% endif %}
         <p>{{ recipe.description }}</p>
     {% endif %}
+    </div>
+    <div id="ingredients">
     <h2>Ingredients</h2>
     <ul>
         {% for part in recipe.ingredients %}
@@ -27,6 +30,8 @@
             {% endfor %}
         {% endfor %}
     </ul>
+    </div>
+    <div id="instructions">
     <h2>Instructions</h2>
     <ol>
         {% for part in recipe.instructions %}
@@ -40,7 +45,7 @@
             {% endfor %}
         {% endfor %}
     </ol>
-    {#{% endif %}#}
+    </div>
 
     <div id="changelog" style="display: none;">
         <h2>Changelog</h2>
@@ -60,22 +65,6 @@
 
     <button onclick="changeLogButton()">Toggle changelog</button>
 
-    {#    <form action="{% url 'cookbook:' question.id %}" method="post">#}
-    {#        {% csrf_token %}#}
-    {#        {% for choice in question.choice_set.all %}#}
-    {#        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">#}
-    {#        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>#}
-    {#        {% endfor %}#}
-    {#        <input type="submit" value="Vote">#}
-    {#    </form>#}
-    <br>
-    <a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Download recipe yaml source</a>
-    <br>
-    <a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Download recipe tex source</a>
-    <br>
-    <a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Download recipe PDF</a>
-{% endblock %}
-
 <script>
     function changeLogButton() {
         var x = document.getElementById("changelog");
@@ -86,4 +75,13 @@
         }
     }
 </script>
+{% endblock %}
 
+{% block sidebar %}
+
+    <p>Downloads for {{ recipe.title }}</p>
+    <li><a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Recipe source</a></li>
+    <li><a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Recipe .tex</a></li>
+    <li><a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Recipe PDF</a></li>
+
+{% endblock %}

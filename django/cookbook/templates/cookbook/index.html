@@ -3,14 +3,6 @@
 {% block title %}Cookbook index page{% endblock %}
 
 {% block content %}
-    {% if user.is_authenticated %}
-        Hi {{ user.username }}
-        <p><a href="{% url 'cookbook:logout' %}">Logout</a></p>
-    {% else %}
-        <p>You are not logged in</p>
-        Login <a href="{% url 'cookbook:login' %}">here</a>.
-    {% endif %}
-
     {% if recipe_list %}
         <ul style="list-style-type:none;">
             {% for recipe in recipe_list %}
