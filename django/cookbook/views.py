@@ -8,12 +8,14 @@ import yaml
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
 from django.urls import reverse
 from django.views import generic
+from django.contrib import messages
 
 from .files import handle_uploaded_file
 from .forms import UploadRecipeForm
 from .models import Recipe
 from qml.parsers import recipe_to_dict, format_for_output
 from .file_io import compile, write_recipe
+from qml.mappings import TypeParser
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +45,8 @@ class DetailView(generic.DetailView):
         context['recipe'].instructions = json.loads(context['recipe'].instructions)
         context['recipe'].changelog = json.loads(context['recipe'].changelog)
 
+        context['recipe'].cooking_time = TypeParser.duration_str(context['recipe'].cooking_time)
+
         return context
 
 
@@ -58,11 +62,10 @@ def upload_file(request):
                     'upload_success': 'Files successfully uploaded!'
                 })
             except (KeyError, NameError, MemoryError) as err:
-                traceback.print_exc()
-                log.error(err)
-                return HttpResponseRedirect(reverse('cookbook:index'),  {
-                    'upload_error': 'File upload failed: {}!'.format(err),
-                })
+                # traceback.print_exc()
+                log.error(str(err))
+                messages.add_message(request, messages.ERROR, f'File upload failed: {str(err)}')
+                return HttpResponseRedirect(reverse('cookbook:index'))
     else:
         form = UploadRecipeForm()
     return HttpResponseRedirect(reverse('cookbook:index'), {

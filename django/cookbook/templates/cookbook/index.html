@@ -3,6 +3,18 @@
 {% block title %}Cookbook index page{% endblock %}
 
 {% block content %}
+
+    {% if messages %}
+        <div class="container">
+        {% for message in messages %}
+            <div class="alert alert-danger alert-dismissible">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                <p>{{ message }}</p>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
     {% if recipe_list %}
         <ul style="list-style-type:none;">
             {% for recipe in recipe_list %}

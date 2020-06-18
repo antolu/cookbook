@@ -7,44 +7,44 @@
 {% block content %}
     <h1>{{ recipe.title }}</h1>
     <div id="information">
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    {% if recipe.yields %}
-        <p>Yields: {{ recipe.yields }}</p>
-    {% endif %}
-    {% if recipe.cooking_time %}
-        <p>Cooking time: {{ recipe.cooking_time }}</p>
-        {% if recipe.description %}
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+        {% if recipe.yields %}
+            <p>Yields: {{ recipe.yields }}</p>
         {% endif %}
-        <p>{{ recipe.description }}</p>
-    {% endif %}
+        {% if recipe.cooking_time %}
+            <p>Cooking time: {{ recipe.cooking_time }}</p>
+            {% if recipe.description %}
+            {% endif %}
+            <p>{{ recipe.description }}</p>
+        {% endif %}
     </div>
     <div id="ingredients">
-    <h2>Ingredients</h2>
-    <ul>
-        {% for part in recipe.ingredients %}
-            {% if part.name %}
-                <h3>{{ part.name }}</h3>
-            {% endif %}
-            {% for ingredient in part.list %}
-                <li>{{ ingredient }}</li>
+        <h2>Ingredients</h2>
+        <ul>
+            {% for part in recipe.ingredients %}
+                {% if part.name %}
+                    <h3>{{ part.name }}</h3>
+                {% endif %}
+                {% for ingredient in part.list %}
+                    <li>{{ ingredient }}</li>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-    </ul>
+        </ul>
     </div>
     <div id="instructions">
-    <h2>Instructions</h2>
-    <ol>
-        {% for part in recipe.instructions %}
-            {% if part.name %}
-                <h3>{{ part.name }}</h3>
-            {% endif %}
-            {% for step in part.list %}
-                <li>
-                    {{ step }}
-                </li>
+        <h2>Instructions</h2>
+        <ol>
+            {% for part in recipe.instructions %}
+                {% if part.name %}
+                    <h3>{{ part.name }}</h3>
+                {% endif %}
+                {% for step in part.list %}
+                    <li>
+                        {{ step }}
+                    </li>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-    </ol>
+        </ol>
     </div>
 
     <div id="changelog" style="display: none;">
@@ -65,21 +65,21 @@
 
     <button onclick="changeLogButton()">Toggle changelog</button>
 
-<script>
-    function changeLogButton() {
-        var x = document.getElementById("changelog");
-        if (x.style.display === "none") {
-            x.style.display = "block";
-        } else {
-            x.style.display = "none";
+    <script>
+        function changeLogButton() {
+            var x = document.getElementById("changelog");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
         }
-    }
-</script>
+    </script>
 {% endblock %}
 
 {% block sidebar %}
 
-    <p>Downloads for {{ recipe.title }}</p>
+    <h3>Downloads</h3>
     <li><a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Recipe source</a></li>
     <li><a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Recipe .tex</a></li>
     <li><a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Recipe PDF</a></li>

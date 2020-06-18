@@ -3,6 +3,7 @@ from datetime import timedelta
 from enum import Enum
 from datetime import timedelta, date, datetime
 import re
+from string import Template
 
 from .utilities import DotDict
 
@@ -173,6 +174,8 @@ def handle_bool(data: str) -> bool:
 def handle_date(data: str) -> date:
     return datetime.strptime(data, '%Y-%m-%d')
 
+class DeltaTemplate(Template):
+    delimiter = '%'
 
 class TypeParser:
     regex = DotDict({
@@ -197,3 +200,25 @@ class TypeParser:
                 return cls.regex[r].function(item)
 
         return item  # No matches
+
+    @classmethod
+    def strfdelta(cls, tdelta: timedelta, fmt: str) -> str:
+        d = dict()
+        hours, remainder = divmod(tdelta.seconds, 3600)
+        d['H'] = hours
+        d['M'], d['S'] = divmod(remainder, 60)
+        t = DeltaTemplate(fmt)
+        return t.substitute(**d)
+
+    @classmethod
+    def duration_str(cls, tdelta: timedelta) -> str:
+        hours, remainder = divmod(tdelta.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+
+        output = ''
+        if hours > 0:
+            output += '{} hour{}'.format(hours, '' if hours == 1 else 's')
+        if minutes > 0:
+            output += '{} minute{}'.format(minutes, '' if minutes == 1 else 's')
+
+        return output

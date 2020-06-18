@@ -41,17 +41,17 @@
             <li>
                 <a href="{% url 'cookbook:index' %}">Home</a>
             </li>
-            <li>
-                <a href="#">About</a>
-            </li>
-            <li>
-                <a href="#">Contact</a>
-            </li>
+{#            <li>#}
+{#                <a href="#">About</a>#}
+{#            </li>#}
+{#            <li>#}
+{#                <a href="#">Contact</a>#}
+{#            </li>#}
             <li>
                 {% if user.is_authenticated %}
                     <a href="{% url 'cookbook:logout' %}">Logout</a>
                 {% else %}
-                    <a href="{% url 'cookbook:login' %}">Log in</a>.
+                    <a href="{% url 'cookbook:login' %}">Log in</a>
                 {% endif %}
             </li>
 
@@ -61,7 +61,6 @@
             {% endblock %}
         </ul>
     </nav>
-
 
 
     <div id="content">
@@ -80,8 +79,17 @@
 
     </div>
 
-    <div class="overlay"></div>
+</div>
+
+<div>
+    <footer id="footer">
+        <p class="copyright">&copy; Anton Lu 2020</p>
+    </footer>
+</div>
+
+<div class="overlay"></div>
 </body>
+
 
 <!-- jQuery CDN - Slim version (=without AJAX) -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
