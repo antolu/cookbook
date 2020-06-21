@@ -1,0 +1,30 @@
+keys:
+  - name
+  - uuid
+  - slug
+  - makes
+  - language
+  - cooking_time
+  - temperature
+  - description
+  - pub_date
+environments:
+  - key: instructions
+    subkeys:
+      - part
+      - optional
+  - key: ingredients
+    subkeys:
+      - part
+      - optional
+  - key: changelog
+    subkeys:
+      - entry
+      - date
+  - key: notes
+  - key: tips
+aliases:
+  - recipe=name
+  - yields=makes
+  - cooking time=cooking_time
+  - cookingtime=cooking_time

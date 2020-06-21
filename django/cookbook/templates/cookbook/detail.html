@@ -1,11 +1,11 @@
 {% extends 'cookbook/base.html' %}
 
 {% block title %}
-    {{ recipe.title }}
+    {{ recipe.name }}
 {% endblock %}
 
 {% block content %}
-    <h1>{{ recipe.title }}</h1>
+    <h1>{{ recipe.name }}</h1>
     <div id="information">
         {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
         {% if recipe.yields %}

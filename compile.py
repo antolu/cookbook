@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.insert(0, 'django/cookbook')
-sys.path.append('django')
+# sys.path.insert(0, 'django/cookbook')
+sys.path.insert(0, './django/')
+# sys.path.append('django')
 import logging
 from os import path, environ
 import pprint
 
-from util import get_args
-from django.qml.parsers import parse_file
-from file_io import compile, write_recipe, make_output_dir
 environ.setdefault("DJANGO_SETTINGS_MODULE", "webapps.settings")
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
+
+from util import get_args
+from cookbook.io.parsers import parse_file
+from cookbook.io.recipefile import RecipeFile
+from qml import dump
 
 
 log = logging.getLogger(__name__)
@@ -40,7 +43,13 @@ def main():
     with open(args.recipe, 'r') as f:
         recipe_data = parse_file(f)
 
-    pp.pprint(recipe_data)
+    file_for_output = recipe_data.format_io()
+
+    log.info(pprint.pformat(file_for_output))
+
+    with open('test.txt', 'w') as f:
+        dump(file_for_output, f)
+
     exit(0)
 
     # print('-'*90)

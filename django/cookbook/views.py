@@ -1,7 +1,7 @@
 import json
 import logging
-from os import path
 import traceback
+from os import path
 from collections import OrderedDict
 
 import yaml
@@ -10,17 +10,14 @@ from django.urls import reverse
 from django.views import generic
 from django.contrib import messages
 
-from .files import handle_uploaded_file
+from cookbook.io.files import handle_uploaded_file
 from .forms import UploadRecipeForm
+from .io.recipefile import RecipeFile
 from .models import Recipe
-from qml.parsers import recipe_to_dict, format_for_output
-from .file_io import compile, write_recipe
-from qml.mappings import TypeParser
+from cookbook.io.file_io import compile, write_recipe
+from qml import to_string
 
 log = logging.getLogger(__name__)
-
-represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
-yaml.add_representer(OrderedDict, represent_dict_order)
 
 
 # Create your views here.
@@ -45,7 +42,7 @@ class DetailView(generic.DetailView):
         context['recipe'].instructions = json.loads(context['recipe'].instructions)
         context['recipe'].changelog = json.loads(context['recipe'].changelog)
 
-        context['recipe'].cooking_time = TypeParser.duration_str(context['recipe'].cooking_time)
+        context['recipe'].cooking_time = to_string(context['recipe'].cooking_time)
 
         return context
 
@@ -61,8 +58,8 @@ def upload_file(request):
                 return HttpResponseRedirect(reverse('cookbook:index'), {
                     'upload_success': 'Files successfully uploaded!'
                 })
-            except (KeyError, NameError, MemoryError) as err:
-                # traceback.print_exc()
+            except (KeyError, NameError, MemoryError, ValueError) as err:
+                traceback.print_exc()
                 log.error(str(err))
                 messages.add_message(request, messages.ERROR, f'File upload failed: {str(err)}')
                 return HttpResponseRedirect(reverse('cookbook:index'))
@@ -74,15 +71,15 @@ def upload_file(request):
 
 
 def download_yaml(request, pk):
-    recipe = Recipe.objects.get(pk=pk)
+    recipe = Recipe.objects.get(pk=pk).__dict__
 
-    data = recipe_to_dict(recipe)
-    formatted_data = format_for_output(data)
+    recipe_file = RecipeFile(recipe, format='django')
+    output = recipe_file.format_io()
 
     response = HttpResponse(content_type='text/yaml')
-    response['Content-Disposition'] = 'attachment; filename="{}.yml"'.format(recipe.title.lower().replace(' ', '_'))
+    response['Content-Disposition'] = 'attachment; filename="{}.rcp"'.format(recipe.title.lower().replace(' ', '_'))
 
-    yaml.dump(formatted_data, response)
+    yaml.dump(output, response)
 
     return response
 
@@ -93,7 +90,8 @@ def download_tex(request, pk):
     response = HttpResponse(content_type='text/tex')
     response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.title.lower().replace(' ', '_'))
 
-    data = format_for_output(recipe_to_dict(recipe))
+    recipe_file = RecipeFile(recipe, format='django')
+    data = recipe_file.format_io()
 
     response.write(write_recipe(data, raw_buffer=True))
 
@@ -103,13 +101,14 @@ def download_tex(request, pk):
 def download_pdf(request, pk):
     recipe = Recipe.objects.get(pk=pk)
 
-    data = format_for_output(recipe_to_dict(recipe))
+    recipe_file = RecipeFile(recipe, format='django')
+    data = recipe_file.format_io()
 
-    out_base = path.join('output', recipe.title).lower()
+    out_base = path.join('output', recipe.name).lower()
     out_tex = out_base + '.tex'
     out_pdf = out_base + '.pdf'
 
-    write_recipe(out_tex, data)
+    write_recipe(data, out_tex)
 
     compile(out_tex)
 

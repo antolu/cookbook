@@ -18,7 +18,7 @@
     {% if recipe_list %}
         <ul style="list-style-type:none;">
             {% for recipe in recipe_list %}
-                <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.title }}</a></li>
+                <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.name }}</a></li>
             {% endfor %}
         </ul>
     {% else %}
