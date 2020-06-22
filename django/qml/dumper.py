@@ -1,10 +1,12 @@
 # TODO: fill this file
+from typing import TextIO, Union
+
 from io import TextIOWrapper
 
 from . import to_string
 
 
-def dump(data: dict, stream: TextIOWrapper):
+def dump(data: dict, stream: Union[TextIOWrapper, TextIO]):
     """
     Dumps data from a dict to a file stream. Iterates through the dictionary in order to write the contents.
 
@@ -17,11 +19,11 @@ def dump(data: dict, stream: TextIOWrapper):
     """
     write_kv = lambda k, v: stream.write(f'{k}: {to_string(v)}\n')
 
-    mid_subkey = False                                  # write newline before new key in environment
+    mid_subkey = False  # write newline before new key in environment
     for key, value in data.items():
-        if isinstance(value, list):                     # environment
+        if isinstance(value, list):  # environment
             mid_subkey = False
-            if len(value) == 0:                         # skip empty environments
+            if len(value) == 0:  # skip empty environments
                 continue
 
             stream.write(f'\n{key}:\n')
@@ -29,7 +31,7 @@ def dump(data: dict, stream: TextIOWrapper):
                 stream.write('\n')
                 mid_subkey = False
             for env_item in value:
-                if isinstance(env_item, tuple):         # kv pair
+                if isinstance(env_item, tuple):  # kv pair
                     stream.write('\n')
                     write_kv(env_item[0], env_item[1])
                 else:

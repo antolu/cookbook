@@ -14,7 +14,8 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
 from util import get_args
-from cookbook.io.parsers import parse_file
+from cookbook.io.files import parse_file
+from cookbook.io.latex import write_recipe
 from cookbook.io.recipefile import RecipeFile
 from qml import dump
 
@@ -60,11 +61,9 @@ def main():
 
     # get_img(recipe_data, io)
 
-    make_output_dir(io)
-
     out_filename = path.join(io['output_dir'], '{}.tex'.format(io['basename']))
 
-    write_recipe(recipe_data, out_filename)
+    write_recipe(recipe_data.format_io(), out_filename)
 
     if args.source_only:
         sys.exit(0)

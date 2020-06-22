@@ -1,11 +1,13 @@
 from os import path
 
 from cookbook.models import Recipe
-from .parsers import parse_file
+from qml import load_config, load
 import logging
 
 from pprint import pformat
 from io import TextIOWrapper
+
+from .recipefile import RecipeFile
 
 log = logging.getLogger(__name__)
 
@@ -47,3 +49,12 @@ def handle_uploaded_file(f):
     recipe = Recipe(**output)
 
     recipe.save()
+
+
+def parse_file(f, config: str = 'parser_config.yml') -> RecipeFile:
+    with open(config, 'r') as c:
+        parser_config = load_config(c)
+
+    data = load(f, config=parser_config)
+
+    return RecipeFile(data, format='io')

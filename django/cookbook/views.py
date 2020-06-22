@@ -14,7 +14,7 @@ from cookbook.io.files import handle_uploaded_file
 from .forms import UploadRecipeForm
 from .io.recipefile import RecipeFile
 from .models import Recipe
-from cookbook.io.file_io import compile, write_recipe
+from cookbook.io.latex import compile, write_recipe
 from qml import to_string
 
 log = logging.getLogger(__name__)

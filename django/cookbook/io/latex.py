@@ -13,17 +13,16 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-# TODO: add key override for parsing, eg top level 'temperature' van be overriden by language specific 'temperature'
-# TODO: add logging for everything
-# TODO: modularise script
-# TODO: add option to remove .tex files
-# TODO: override with immediate filename instead of shortname without extension (basename.extension instead of basename)
-# TODO: allow compiling several recipes at once into a single PDF, or separate (selectable)
-# TODO: add GUI
-# TODO: add option to compile all available recipes in a directory
-
-
 class Environment:
+    """
+    Helper class to write a latex verbatim environment.
+
+    Used as
+    ```
+    with Environment(file_stream, verbatim_name) as e:
+        write_line(some_string)
+    ```
+    """
     def __init__(self, f, env):
         self.f = f
         self.env = env
@@ -36,6 +35,19 @@ class Environment:
 
 
 def get_writer(f):
+    """
+    Get a function handle to write strings to a stream without having to explicitly write newline at the end.
+
+    Parameters
+    ----------
+    f : TextIO
+        File stream to create a wrapper for.
+
+    Returns
+    -------
+    function
+        A lambda function taking arguments s: str, end: str. Writes string `s`, and ends the write with `end`.
+    """
     return lambda s='', end='\n': print(s, file=f, end=end)
 
 
@@ -106,32 +118,42 @@ def write_steps(steps: dict, f) -> None:
 
 def compile(file: str) -> None:
     """
-    Run pdflatex
+    Compile a file using latexmk and xelatex. The output PDF file is placed in the same directory
+    as the source file.
 
-    param : files The files to run pdflatex on
+    Also removes auxiliary files produced by the latex compiler when finished.
 
+    Parameters
+    ----------
+    file : str
+        The path to the file to compile
+
+    Raises
+    ------
+    RuntimeError:
+        If xelatex or latexmk cannot be count.
     """
     if which('latexmk') is None or which('xelatex') is None:
-        log.error('xelatex or latexmk could not be found. Leaving Latex source files as-is.')
-        exit(2)
-    else:
-        output_dir = path.split(file)[0]
-        command = r'latexmk -xelatex -output-directory={} {}'.format(
-            output_dir.replace(' ', '\\ '), file.replace(' ', '\\ '))
-        log.info('Running command {}'.format(command))
-        code = shell(command).read()
-        if code != '0':
-            log.error('latexmk failed. Check the log file for errors')
-            return
+        raise RuntimeError('xelatex or latexmk could not be found. Leaving Latex source files as-is.')
 
-        log.info('PDF files successfully generated. ')
-        log.info('Cleaning up')
+    output_dir = path.split(file)[0]
+    command = r'latexmk -xelatex -output-directory={} {}'.format(
+        output_dir.replace(' ', '\\ '), file.replace(' ', '\\ '))
+    log.info('Running shell command {}'.format(command))
+    code = shell(command).read()
+    if code != '0':
+        log.error('latexmk failed. Check the log file for errors')
+        return
 
-        to_delete = list()
-        basename = path.splitext(path.basename(file))[0]
-        to_delete.append(path.join(output_dir, '{}.log'.format(basename)))
-        to_delete.append(path.join(output_dir, '{}.aux'.format(basename)))
+    log.info('PDF file successfully generated. ')
+    log.info('Cleaning up')
 
-        for file in to_delete:
-            log.debug('Deleting file {}'.format(path.basename(file)))
-            remove(file)
+    # Delete remaining files
+    to_delete = list()
+    basename = path.splitext(path.basename(file))[0]
+    to_delete.append(path.join(output_dir, '{}.log'.format(basename)))
+    to_delete.append(path.join(output_dir, '{}.aux'.format(basename)))
+
+    for file in to_delete:
+        log.debug('Deleting file {}'.format(path.basename(file)))
+        remove(file)
