@@ -16,6 +16,18 @@ log = logging.getLogger(__name__)
 
 
 class RecipeFile:
+    """
+    Represents a recipe in memory, and contains an internal dictionary that represents the recipe, and allows
+    for it to be converted into django database form, or to a qml parsable form. The intenral dictionary is created
+    from either a formatted dictionary, from a parsed qml file, or directly from a django Recipe model object.
+
+    See Also
+    --------
+    django.cookbook.models.Recipe:
+        The Django recipe class
+    """
+
+    # These fields represent the fields that must exist in either representation.
     required_fields = {
         'name',
         'makes',
@@ -23,6 +35,7 @@ class RecipeFile:
         'instructions',
     }
 
+    # These fields represents the fields that may optionally be present in a recipe.
     optional_fields = {
         'language',
         'uuid',
@@ -35,6 +48,7 @@ class RecipeFile:
         'pub_date',
     }
 
+    # These fields represent environments are not simply kv-pairs, and require special attention.
     environments = [
         'ingredients',
         'instructions',
@@ -42,31 +56,64 @@ class RecipeFile:
     ]
 
     def __init__(self, data: Union[Recipe, dict], format: str):
+        """
+        Parameters
+        ----------
+        data : Recipe or dict
+            The data to wrap, or convert to a proper format.
+        format : str
+            Which format the passed data is, or rather from which format to convert to internal represenation.
+        """
         if format == 'io':
-            internal = self.__io_to_dict(data)
+            internal = self.__io_to_internal(data)
         elif format == 'internal':
             internal = data
         elif format == 'django':
             if isinstance(data, Recipe):
                 data = data.__dict__
-            internal = self.__django_to_dict(data)
+            internal = self.__djangodb_to_internal(data)
         else:
             raise ValueError(f'The format {format} is not a valid format.')
         self.internal = internal
 
-    def format_dict(self) -> dict:
+    def get_dict(self) -> dict:
+        """
+        Returns the internal (pythonic) representation of the recipe without any conversion.
+
+        Returns
+        -------
+        dict:
+            A dictionary that represents the wrapped recipe.
+        """
         return self.internal
 
-    def format_django(self) -> dict:
-        return self.__dict_to_django(self.internal)
+    def to_djangodb(self) -> dict:
+        """
+        Takes the internal dictionary and converts it into a django db representation.
 
-    def format_io(self) -> dict:
-        return self.__dict_to_io(self.internal)
+        Returns
+        -------
+        dict:
+            A dictionary that allows for a django.cookbook.models.Recipe object to be created using the kv-pairs.
+        """
+        return self.__internal_to_djangodb(self.internal)
 
-    def __io_to_dict(self, data: dict) -> dict:
+    def to_qml(self) -> dict:
+        """
+        Takes the internal dictionary and converts it into a qml exportable representation.
+
+        Returns
+        -------
+        dict:
+
+        """
+        return self.__internal_to_qml(self.internal)
+
+    def __io_to_internal(self, data: dict) -> dict:
         """
         Converts an input from QML loader into a python dictionary with full recipe structure
         """
+
         output = DotDict()
         error_messages = []
         error_message_template = 'The recipe does not contain a required key [{}]'
@@ -130,7 +177,7 @@ class RecipeFile:
 
         return output
 
-    def __dict_to_io(self, data: dict) -> dict:
+    def __internal_to_qml(self, data: dict) -> dict:
         # TODO: also need to convert python representations like durations to strings
 
         output = DotDict()
@@ -164,7 +211,7 @@ class RecipeFile:
 
         return output
 
-    def __dict_to_django(self, data: dict) -> dict:
+    def __internal_to_djangodb(self, data: dict) -> dict:
         """
             Convert a YAML/dictionary form data to JSON compatible for insertion to Django DB
             """
@@ -227,7 +274,7 @@ class RecipeFile:
 
         return output
 
-    def __django_to_dict(self, data: dict) -> dict:
+    def __djangodb_to_internal(self, data: dict) -> dict:
 
         output = OrderedDict()
 

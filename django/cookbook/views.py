@@ -74,7 +74,7 @@ def download_yaml(request, pk):
     recipe = Recipe.objects.get(pk=pk).__dict__
 
     recipe_file = RecipeFile(recipe, format='django')
-    output = recipe_file.format_io()
+    output = recipe_file.to_qml()
 
     response = HttpResponse(content_type='text/yaml')
     response['Content-Disposition'] = 'attachment; filename="{}.rcp"'.format(recipe.title.lower().replace(' ', '_'))
@@ -91,7 +91,7 @@ def download_tex(request, pk):
     response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.title.lower().replace(' ', '_'))
 
     recipe_file = RecipeFile(recipe, format='django')
-    data = recipe_file.format_io()
+    data = recipe_file.to_qml()
 
     response.write(write_recipe(data, raw_buffer=True))
 
@@ -102,7 +102,7 @@ def download_pdf(request, pk):
     recipe = Recipe.objects.get(pk=pk)
 
     recipe_file = RecipeFile(recipe, format='django')
-    data = recipe_file.format_io()
+    data = recipe_file.to_qml()
 
     out_base = path.join('output', recipe.name).lower()
     out_tex = out_base + '.tex'

@@ -26,7 +26,7 @@ def handle_uploaded_file(f):
     file = TextIOWrapper(f.file)
     recipe_file = parse_file(file)
 
-    output = recipe_file.format_django()
+    output = recipe_file.to_djangodb()
 
     # If recipe with same UUID exists, try to update it, else create a new one.
     if 'uuid' in output and output['uuid']:
@@ -51,7 +51,7 @@ def handle_uploaded_file(f):
     recipe.save()
 
 
-def parse_file(f, config: str = 'parser_config.yml') -> RecipeFile:
+def parse_file(f, config: str = 'config/parser_config.yml') -> RecipeFile:
     with open(config, 'r') as c:
         parser_config = load_config(c)
 
