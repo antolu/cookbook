@@ -28,17 +28,18 @@ class RecipeFile:
     """
 
     # These fields represent the fields that must exist in either representation.
-    required_fields = {
+    required_fields = [
         'name',
         'makes',
         'ingredients',
         'instructions',
-    }
+    ]
 
     # These fields represents the fields that may optionally be present in a recipe.
-    optional_fields = {
+    optional_fields = [
         'language',
         'uuid',
+        'slug',
         'description',
         'temperature',
         'cooking_time',
@@ -46,7 +47,7 @@ class RecipeFile:
         'tips',
         'changelog',
         'pub_date',
-    }
+    ]
 
     # These fields represent environments are not simply kv-pairs, and require special attention.
     environments = [
@@ -146,7 +147,7 @@ class RecipeFile:
                     if isinstance(item, tuple):  # is a key-value pair
                         key, val = item
                         if key == 'part':
-                            d = DotDict({'name': val, 'list': list()})
+                            d = DotDict({'name': val.title(), 'list': list()})
                             if middlehand and (
                                     not middlehand[0] or not middlehand[0]['list']):  # First entry in the list is empty
                                 middlehand[0] = d
@@ -198,6 +199,7 @@ class RecipeFile:
             middlehand = list()
             if env in data:
                 for sub_env in data[env]:
+                    log.info(pformat(data[env]))
                     for key, value in sub_env.items():
                         if isinstance(value, list):
                             for val in value:

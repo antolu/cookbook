@@ -3,6 +3,7 @@ import logging
 import traceback
 from os import path
 from collections import OrderedDict
+from pprint import pformat
 
 import yaml
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse
@@ -15,7 +16,7 @@ from .forms import UploadRecipeForm
 from .io.recipefile import RecipeFile
 from .models import Recipe
 from cookbook.io.latex import compile, write_recipe
-from qml import to_string
+from qml import to_string, dump
 
 log = logging.getLogger(__name__)
 
@@ -76,10 +77,10 @@ def download_yaml(request, pk):
     recipe_file = RecipeFile(recipe, format='django')
     output = recipe_file.to_qml()
 
-    response = HttpResponse(content_type='text/yaml')
-    response['Content-Disposition'] = 'attachment; filename="{}.rcp"'.format(recipe.title.lower().replace(' ', '_'))
+    response = HttpResponse(content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="{}.rcp"'.format(recipe['name'].lower().replace(' ', '_'))
 
-    yaml.dump(output, response)
+    dump(output, response)
 
     return response
 
@@ -88,12 +89,11 @@ def download_tex(request, pk):
     recipe = Recipe.objects.get(pk=pk)
 
     response = HttpResponse(content_type='text/tex')
-    response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.title.lower().replace(' ', '_'))
+    response['Content-Disposition'] = 'attachment; filename="{}.tex"'.format(recipe.name.lower().replace(' ', '_'))
 
     recipe_file = RecipeFile(recipe, format='django')
-    data = recipe_file.to_qml()
 
-    response.write(write_recipe(data, raw_buffer=True))
+    response.write(write_recipe(recipe_file.get_dict(), raw_buffer=True))
 
     return response
 
@@ -102,16 +102,15 @@ def download_pdf(request, pk):
     recipe = Recipe.objects.get(pk=pk)
 
     recipe_file = RecipeFile(recipe, format='django')
-    data = recipe_file.to_qml()
 
     out_base = path.join('output', recipe.name).lower()
     out_tex = out_base + '.tex'
     out_pdf = out_base + '.pdf'
 
-    write_recipe(data, out_tex)
+    write_recipe(recipe_file.get_dict(), out_tex)
 
     compile(out_tex)
 
-    response = FileResponse(open(out_pdf, 'rb'), as_attachment=True, filename='{}.pdf'.format(recipe.title.lower().replace(' ', '_')))
+    response = FileResponse(open(out_pdf, 'rb'), as_attachment=True, filename='{}.pdf'.format(recipe.name.lower().replace(' ', '_')))
 
     return response

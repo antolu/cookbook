@@ -7,12 +7,8 @@
 
 \title{ {{ recipe.name }} }
 
-{% if recipe.yields %}
-\yields{ {{ recipe.yields }} }
-{% endif %}
-
-{% if recipe.last_changed %}
-\date{ {{ recipe.date_published }} }
+{% if recipe.makes %}
+\yields{ {{ recipe.makes }} }
 {% endif %}
 
 {% if recipe.description %}
@@ -36,40 +32,29 @@
 {% endif %}
 
 \providecommand\ingredients{
-    {% if recipe.parts %}
-    {% for part in recipe.parts %}
+    {% for part in recipe.ingredients %}
+    {% if part.name %}
     \ingredientpart{ {{ part.name }} }
+    {% endif %}
     \begin{compactlist}
-        {% for ingredient in part.ingredients %}
+        {% for ingredient in part.list %}
         \ingredient {{ ingredient }}
         {% endfor %}
     \end{compactlist}
     {% endfor %}
-    {% else %}
-    \begin{compactlist}
-    {% for ingredient in recipe.ingredients %} \ingredient {{ ingredient }}
-    {% endfor %}
-    \end{compactlist}
-    {% endif %}
 }
 
 \providecommand{\instructions}{
-    {% if recipe.parts %}
-    {% for part in recipe.parts %}
+    {% for part in recipe.instructions %}
+    {% if part.name %}
     \steppart{ {{ part.name }} }
+    {% endif %}
     \begin{steps}
-        {% for step in part.steps %}
+        {% for step in part.list %}
         \step {{ step }}
         {% endfor %}
     \end{steps}
     {% endfor %}
-    {% else %}
-    \begin{steps}
-    {% spaceless %}{% for step in recipe.steps %}
-        \step {{ step }}
-        {% endfor %}{% endspaceless %}
-    \end{steps}
-    {% endif %}
 }
 
 {% if recipe.changelog %}
@@ -82,9 +67,8 @@
         {% endfor %}
         {% endfor %}
     \end{itemize}
-    {% endif %}
-
 }
+{% endif %}
 
 \makerecipe
 {% endautoescape %}

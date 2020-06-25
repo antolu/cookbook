@@ -37,7 +37,7 @@ class Loader(_AbstractLoader):
 
         data = DotDict()
 
-        iterator = Iterator(input_data.splitlines())
+        iterator = Iterator([line.strip() for line in input_data.splitlines()])
 
         while iterator.has_next():
             try:

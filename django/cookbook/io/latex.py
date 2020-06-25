@@ -143,9 +143,9 @@ def compile(file: str) -> None:
     code = shell(command).read()
     if code != '0':
         log.error('latexmk failed. Check the log file for errors')
-        return
+    else:
+        log.info('PDF file successfully generated. ')
 
-    log.info('PDF file successfully generated. ')
     log.info('Cleaning up')
 
     # Delete remaining files

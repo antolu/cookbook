@@ -50,7 +50,7 @@ def main():
     with open('sources/test.txt', 'w') as f:
         dump(file_for_output, f)
 
-    exit(0)
+    return
 
     # print('-'*90)
     # print('JSONd data')
