@@ -2,12 +2,15 @@ import logging
 from glob import glob
 from os import path, mkdir, remove
 from os import popen as shell
+import inspect
 from sys import exit
 
 from django.template import loader
 from django.shortcuts import render
 
 from shutil import which
+
+from .. import ROOT_DIR
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -137,8 +140,8 @@ def compile(file: str) -> None:
         raise RuntimeError('xelatex or latexmk could not be found. Leaving Latex source files as-is.')
 
     output_dir = path.split(file)[0]
-    command = r'latexmk -xelatex -output-directory={} {}'.format(
-        output_dir.replace(' ', '\\ '), file.replace(' ', '\\ '))
+    command = r'TEXINPUTS={}//:$TEXINPUTS latexmk -xelatex -output-directory={} {}'.format(
+        ROOT_DIR, output_dir.replace(' ', '\\ '), file.replace(' ', '\\ '))
     log.info('Running shell command {}'.format(command))
     code = shell(command).read()
     if code != '0':
