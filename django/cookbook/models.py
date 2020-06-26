@@ -14,7 +14,7 @@ class Recipe(Model):
     slug = AutoSlugField(_('slug'), editable=True, unique=True, populate_from='name',
                          help_text='An easy-to-remember short name.')
     uuid = UUIDField(editable=False, default=uuid.uuid4, primary_key=True)
-    language = CharField(max_length=20, choices=[('en', 'English'), ('sv', "Swedish")], default='english')
+    language = CharField(max_length=20, choices=[('en', 'english'), ('sv', "swedish")], default='english')
 
     makes = CharField(max_length=100, help_text='How much the recipe yields, for 4 people, 8 pieces, etc.')
 

@@ -19,7 +19,6 @@ environments:
       - optional
   - key: changelog
     subkeys:
-      - entry
       - date
   - key: notes
   - key: tips
