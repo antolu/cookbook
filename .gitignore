@@ -7,6 +7,8 @@ output
 django/*/migrations
 sources
 outputs
+dist
+*.egg-info
 
 # latex junk
 *.log

@@ -5,3 +5,4 @@ django
 django_extensions
 psycopg2
 python-magic
+-e git+https://gitlab.haochen.lu/queubit/python-qml.git#egg=python_qml
