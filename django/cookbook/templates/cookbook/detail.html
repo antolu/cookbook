@@ -5,65 +5,67 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ recipe.name }}</h1>
-    <div id="information">
-        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-        {% if recipe.yields %}
-            <p>Yields: {{ recipe.yields }}</p>
-        {% endif %}
-        {% if recipe.cooking_time %}
-            <p>Cooking time: {{ recipe.cooking_time }}</p>
-        {% endif %}
-        {% if recipe.description %}
-            <p>{{ recipe.description }}</p>
-        {% endif %}
-    </div>
-    <div id="ingredients">
-        <h2>Ingredients</h2>
-        <ul>
-            {% for part in recipe.ingredients %}
-                {% if part.name %}
-                    <h3>{{ part.name }}</h3>
-                {% endif %}
-                {% for ingredient in part.list %}
-                    <li>{{ ingredient }}</li>
-                {% endfor %}
-            {% endfor %}
-        </ul>
-    </div>
-    <div id="instructions">
-        <h2>Instructions</h2>
-        <ol>
-            {% for part in recipe.instructions %}
-                {% if part.name %}
-                    <h3>{{ part.name }}</h3>
-                {% endif %}
-                {% for step in part.list %}
-                    <li>
-                        {{ step }}
-                    </li>
-                {% endfor %}
-            {% endfor %}
-        </ol>
-    </div>
-
-    <div id="changelog" style="display: none;">
-        <h2>Changelog</h2>
-        <ul>
-            {% for change in recipe.changelog %}
-                <li>
-                    Date: {{ change.date }}
-                    <ul>
-                        {% for comment in change.change %}
-                            <li>{{ comment }}</li>
+    <h1 id="recipe-name">{{ recipe.name }}</h1>
+    {% if recipe.description %}
+        <p>{{ recipe.description }}</p>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-4" id="info-bar">
+            <div id="ingredients">
+                <h2>Ingredients</h2>
+                <ul class="list-unstyled">
+                    {% for part in recipe.ingredients %}
+                        {% if part.part %}
+                            <h3>{{ part.part }}</h3>
+                        {% endif %}
+                        {% for ingredient in part.list %}
+                            <li>{{ ingredient }}</li>
                         {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if recipe.yields %}
+                <p>Yields: {{ recipe.yields }}</p>
+            {% endif %}
+            {% if recipe.cooking_time %}
+                <p>Cooking time: {{ recipe.cooking_time }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-8" id="main-recipe">
+            <div id="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    {% for part in recipe.instructions %}
+                        {% if part.part %}
+                            <h3>{{ part.part }}</h3>
+                        {% endif %}
+                        {% for step in part.list %}
+                            <li>
+                                {{ step }}
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ol>
+            </div>
 
-    <button onclick="changeLogButton()">Toggle changelog</button>
+            <div id="changelog" style="display: none;">
+                <h2>Changelog</h2>
+                <ul>
+                    {% for change in recipe.changelog %}
+                        <li>
+                            Date: {{ change.date }}
+                            <ul>
+                                {% for comment in change.list %}
+                                    <li>{{ comment }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
 
     <script>
         function changeLogButton() {
@@ -84,4 +86,9 @@
         <li><a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Recipe .tex</a></li>
         <li><a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Recipe PDF</a></li>
     </ul>
+    <div class="line"></div>
+    <ul class="sidebar-list list-unstyled">
+        <li><a onclick="changeLogButton()" id="changelog-button" class="button">Toggle changelog</a></li>
+    </ul>
+    <div class="line"></div>
 {% endblock %}

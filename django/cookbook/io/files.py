@@ -3,6 +3,7 @@ from os import path
 from cookbook.models import Recipe
 from qml import load_config, load
 import logging
+from magic import Magic
 
 from pprint import pformat
 from io import TextIOWrapper
@@ -16,13 +17,11 @@ def handle_uploaded_file(f):
     if not f.size < 1e6:
         raise MemoryError('File too big!')
 
-    filename = f.name
-    ext = path.splitext(filename)[-1]
-    if ext not in ('.rcp', '.txt'):
-        raise NameError('File extension \'{}\' is invalid.'.format(ext))
+    mime = Magic(mime=True)
+    if mime.from_buffer(f.read()) != 'text/plain':
+        raise ValueError('Passed file is not a text file.')
 
-    # TODO: also check if file is raw text or binary
-
+    f.file.seek(0)
     file = TextIOWrapper(f.file)
     recipe_file = parse_file(file)
 
@@ -49,6 +48,8 @@ def handle_uploaded_file(f):
     recipe = Recipe(**output)
 
     recipe.save()
+
+    return recipe
 
 
 def parse_file(f, config: str = 'config/parser_config.yml') -> RecipeFile:

@@ -230,7 +230,7 @@ def _handle_date(data: str) -> date:
 
     """
     # TODO: handle more dae formats
-    return datetime.strptime(data, '%Y-%m-%d')
+    return datetime.strptime(data, '%Y-%m-%d').date()
 
 
 class _DeltaTemplate(Template):
@@ -250,7 +250,7 @@ _regex = DotDict({
     re.compile(r'^(\d+\s?(hours|h))?\s?(\d+\s?(minutes|m))?$', re.IGNORECASE): {  # duration
         'function': _handle_duration,
     },
-    re.compile(r'^\d{2}-?\d{1,2}-?\d{1,2}$', re.IGNORECASE): {
+    re.compile(r'^\d{4}-?\d{1,2}-?\d{1,2}$', re.IGNORECASE): {
         'function': _handle_date,
     },
     re.compile(r'^(no|yes|true|false)$', re.IGNORECASE): {

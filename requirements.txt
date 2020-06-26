@@ -4,3 +4,4 @@ gunicorn
 django
 django_extensions
 psycopg2
+python-magic

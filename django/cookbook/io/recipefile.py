@@ -142,12 +142,12 @@ class RecipeFile:
             elif env not in data and env in self.optional_fields:
                 log.warning(f'Environment [{env}] is missing. Skipping it.')
             else:
-                middlehand = [{'list': list()}]
+                middlehand = [DotDict()]
                 for item in data[env]:
                     if isinstance(item, tuple):  # is a key-value pair
                         key, val = item
                         if key == 'part':
-                            d = DotDict({'name': val.title(), 'list': list()})
+                            d = DotDict({'part': val.title(), 'list': list()})
                             if middlehand and (
                                     not middlehand[0] or not middlehand[0]['list']):  # First entry in the list is empty
                                 middlehand[0] = d
@@ -155,19 +155,16 @@ class RecipeFile:
                                 middlehand.append(d)
                         elif key == 'optional':
                             middlehand[-1]['optional'] = val
-                        elif key == 'entry':
-                            if 'entry' in middlehand[-1] and middlehand[-1]['entry'] != val:
-                                middlehand.append({'entry': val})
-                            else:
-                                middlehand[-1]['entry'] = val
                         elif key == 'date':
                             if 'date' in middlehand[-1] and middlehand[-1]['date'] != val:
-                                middlehand.append({'date': val})
+                                middlehand.append({'date': val, 'list': list()})
                             else:
                                 middlehand[-1]['date'] = val
                         else:
                             raise KeyError('Key {} is not a valid ')
                     elif isinstance(item, str):
+                        if 'list' not in middlehand[-1]:
+                            middlehand[-1]['list'] = list()
                         middlehand[-1]['list'].append(item)
                     else:
                         error_messages += f'Item {str(item)} is of invalid format.\n'

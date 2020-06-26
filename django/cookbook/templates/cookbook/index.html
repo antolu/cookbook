@@ -4,40 +4,17 @@
 
 {% block content %}
 
-    {% if messages %}
-        <div class="container">
-        {% for message in messages %}
-            <div class="alert alert-danger alert-dismissible">
-                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                <p>{{ message }}</p>
-            </div>
-        {% endfor %}
-        </div>
-    {% endif %}
-
     {% if recipe_list %}
-        <ul style="list-style-type:none;">
+        <div id="recipe-list">
+        <h2>Available recipes</h2>
+        <ul class="list-unstyled">
             {% for recipe in recipe_list %}
                 <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.name }}</a></li>
             {% endfor %}
         </ul>
+        </div>
     {% else %}
         <p>No recipes are available.</p>
-    {% endif %}
-
-    {% if user.is_authenticated %}
-        <p>Upload a new recipe here!</p>
-        <form enctype="multipart/form-data" method="post" action="{% url 'cookbook:upload_recipe' %}">
-            {% csrf_token %}
-            <input type="file" id="recipefile" name="file" multiple>
-            <input type="submit">
-        </form>
-        {% if upload_success %}
-            <p>{{ upload_success }}</p>
-        {% endif %}
-        {% if upload_error != None %}
-            <p>{{ upload_error }}</p>
-        {% endif %}
     {% endif %}
 
 {% endblock %}
