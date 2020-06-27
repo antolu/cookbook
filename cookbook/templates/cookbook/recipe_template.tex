@@ -62,7 +62,7 @@
     \begin{itemize}
         {% for change in recipe.changelog %}
             \item {{ change.date }}\\
-        {% for line in change.change %}
+        {% for line in change.list %}
             {{ line }}\\
         {% endfor %}
         {% endfor %}
