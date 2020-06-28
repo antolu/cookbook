@@ -2,6 +2,7 @@ import logging
 from glob import glob
 from os import path, mkdir, remove
 from os import popen as shell
+import inspect
 from sys import exit
 
 from django.template import loader
