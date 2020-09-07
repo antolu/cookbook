@@ -22,7 +22,7 @@ EOF
 	fi
 
 	if [[ ! -z $DOCKERCOMPOSE ]]; then
-		cat <<EOF | sed -i "/^\# BEGIN SUBMODULES/r /dev/stdin" $DOCKERCOMPOSE
+		cat <<EOF | sed -i "/\# BEGIN SUBMODULES/r /dev/stdin" $DOCKERCOMPOSE
         $BEGIN
         source $repodir/tests/tools.sh
         installStylesheet
