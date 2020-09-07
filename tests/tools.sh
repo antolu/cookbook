@@ -54,6 +54,46 @@ remove () {
 	fi
 }
 
+installTeXLive() {
+    CWD=$PWD
+    curl -L http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz -o /tmp/install-tl.tar.gz
+    cd /tmp
+    tar -xvf install-tl.tar.gz
+    cd install-tl-*
+    ./install-tl -profile "$CWD"/config/texlive.profile
+
+    cd "$CWD"
+    echo 'pathmunge /usr/local/texlive/2020/bin/x86_64-linux' > /etc/profile.d/customshell.sh
+
+    /usr/local/texlive/2020/bin/x86_64-linux/tlmgr install \
+        babel-swedish \
+        enumitem \
+        environ \
+        etoolbox \
+        fontspec \
+        ifsym \
+        lastpage \
+        latexindent \
+        latexmk \
+        newunicodechar \
+        pgf \
+        tcolorbox \
+        titlesec \
+        trimspaces \
+        units \
+        wrapfig \
+        xcolor \
+        xetex
+}
+
+installTeXTools() {
+    /usr/local/texlive/2020/bin/x86_64-linux/tlmgr install \
+    latexindent
+
+    yum install perl perl-open
+    cpan install Log::Log4perl Log::Dispatch::File YAML::Tiny
+}
+
 installStylesheet () {
   CWD=$PWD
   cd /tmp
