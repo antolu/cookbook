@@ -23,11 +23,11 @@ EOF
 
 	if [[ ! -z $DOCKERCOMPOSE ]]; then
 		cat <<EOF | sed -i "/^\# BEGIN SUBMODULES/r /dev/stdin" $DOCKERCOMPOSE
-$BEGIN
+        $BEGIN
         source $repodir/tests/tools.sh
         installStylesheet
         python ./manage.py makemigrations cookbook
-$END
+        $END
 EOF
 	fi
 }
@@ -45,12 +45,12 @@ remove () {
 	END="# END > COOKBOOK"
 
 	if [[ ! -z $DOCKERFILE ]]; then
-		sed -i "/^$BEGIN/,/^$END/d" $DOCKERFILE
+		sed -i "/$BEGIN/,/$END/d" $DOCKERFILE
 	fi
 
 
 	if [[ ! -z $DOCKERCOMPOSE ]]; then
-		sed -i "/^$BEGIN/,/^$END/d" $DOCKERCOMPOSE
+		sed -i "/$BEGIN/,/$END/d" $DOCKERCOMPOSE
 	fi
 }
 
