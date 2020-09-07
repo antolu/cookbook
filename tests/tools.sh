@@ -17,6 +17,7 @@ init () {
 $BEGIN
 RUN bash -c "source $repodir/tests/tools.sh && installTeXLive"
 ENV PATH /usr/local/texlive/2020/bin/x86_64-linux:\$PATH
+ENV PYTHONPATH $repodir:$PYTHONPATH
 $END
 EOF
 	fi
@@ -42,7 +43,7 @@ remove () {
 	fi
 
 	BEGIN="# > BEGIN COOKBOOK"
-	END="# END > COOKBOOK"
+	END="# > END COOKBOOK"
 
 	if [[ ! -z $DOCKERFILE ]]; then
 		sed -i "/$BEGIN/,/$END/d" $DOCKERFILE
