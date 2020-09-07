@@ -26,6 +26,7 @@ EOF
 $BEGIN
         source $repodir/tests/tools.sh
         installStylesheet
+        python ./manage.py makemigrations cookbook
 $END
 EOF
 	fi
