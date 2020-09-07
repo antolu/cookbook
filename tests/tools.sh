@@ -9,8 +9,8 @@ init () {
 		sed -i "/^urlpatterns = \[/a\ \ \ \ path('cookbook/', include('cookbook.urls'))," $URLSPY
 	fi
 
-	BEGIN="\# > BEGIN COOKBOOK"
-	END="\# > END COOKBOOK"
+	BEGIN="# > BEGIN COOKBOOK"
+	END="# > END COOKBOOK"
 
 	if [[ ! -z $DOCKERFILE ]]; then
 		cat <<EOF | sed -i "/^\# BEGIN SUBMODULES/r /dev/stdin" $DOCKERFILE
@@ -41,8 +41,8 @@ remove () {
 		sed -i "/cookbook.urls/d" $URLSPY
 	fi
 
-	BEGIN="\# > BEGIN COOKBOOK"
-	END="\# END > COOKBOOK"
+	BEGIN="# > BEGIN COOKBOOK"
+	END="# END > COOKBOOK"
 
 	if [[ ! -z $DOCKERFILE ]]; then
 		sed -i "/^$BEGIN/,/^$END/d" $DOCKERFILE
