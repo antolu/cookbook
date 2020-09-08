@@ -1,0 +1,18 @@
+__pycache__
+.idea
+.devcontainer
+
+venv
+output
+django/*/migrations
+sources
+outputs
+dist
+*.egg-info
+
+# latex junk
+*.log
+*.fls
+*.fdb*
+*.aux
+*.synctex

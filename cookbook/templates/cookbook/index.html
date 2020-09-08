@@ -1,0 +1,20 @@
+{% extends 'cookbook/base.html' %}
+
+{% block title %}Cookbook index page{% endblock %}
+
+{% block content %}
+
+    {% if recipe_list %}
+        <div id="recipe-list">
+        <h2>Available recipes</h2>
+        <ul class="list-unstyled">
+            {% for recipe in recipe_list %}
+                <li><a href="{% url 'cookbook:detail' recipe.slug %}">{{ recipe.name }}</a></li>
+            {% endfor %}
+        </ul>
+        </div>
+    {% else %}
+        <p>No recipes are available.</p>
+    {% endif %}
+
+{% endblock %}

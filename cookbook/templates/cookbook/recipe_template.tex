@@ -1,0 +1,74 @@
+{% autoescape off %}
+
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage{cookbook}
+
+
+\title{ {{ recipe.name }} }
+
+{% if recipe.makes %}
+\yields{ {{ recipe.makes }} }
+{% endif %}
+
+{% if recipe.description %}
+\description{ {{ recipe.description }} }
+{% endif %}
+
+{% if recipe.cookingtime %}
+\cookingitme{ {{ recipe.cookingtime }} }
+{% endif %}
+
+{% if recipe.temperature %}
+\temperature{ {{ recipe.temperature }} }
+{% endif %}
+
+{% if recipe.image %}
+\image{ {{ recipe.image }} }
+{% endif %}
+
+{% if recipe.changelog %}
+\date{ {{ recipe.changelog.0.date }} }
+{% endif %}
+
+\providecommand\ingredients{
+    {% for part in recipe.ingredients %}
+    {% if part.name %}
+    \ingredientpart{ {{ part.name }} }
+    {% endif %}
+    \begin{compactlist}
+        {% for ingredient in part.list %}
+        \ingredient {{ ingredient }}
+        {% endfor %}
+    \end{compactlist}
+    {% endfor %}
+}
+
+\providecommand{\instructions}{
+    {% for part in recipe.instructions %}
+    {% if part.name %}
+    \steppart{ {{ part.name }} }
+    {% endif %}
+    \begin{steps}
+        {% for step in part.list %}
+        \step {{ step }}
+        {% endfor %}
+    \end{steps}
+    {% endfor %}
+}
+
+{% if recipe.changelog %}
+\providecommand{\changelog}{
+    \begin{itemize}
+        {% for change in recipe.changelog %}
+            \item {{ change.date }}\\
+        {% for line in change.list %}
+            {{ line }}\\
+        {% endfor %}
+        {% endfor %}
+    \end{itemize}
+}
+{% endif %}
+
+\makerecipe
+{% endautoescape %}
