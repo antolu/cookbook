@@ -1,0 +1,97 @@
+{% extends 'cookbook/base.html' %}
+
+{% block title %}
+    {{ recipe.name }}
+{% endblock %}
+
+{% block content %}
+    <h1 id="recipe-name">{{ recipe.name }}</h1>
+    {% if recipe.description %}
+        <p>{{ recipe.description }}</p>
+    {% endif %}
+    <div class="row justify-content-start">
+        <div class="col-md-4" id="info-bar">
+            {% if recipe.cooking_time %}
+                <p>Cooking time: {{ recipe.cooking_time }}</p>
+            {% endif %}
+            {% if recipe.temperature %}
+                <p>Temperature: {{ recipe.temperature }} degrees</p>
+            {% endif %}
+            <div id="ingredients">
+                <h2>Ingredients</h2>
+                <ul class="list-unstyled">
+                    {% for part in recipe.ingredients %}
+                        {% if part.part %}
+                            <h3>{{ part.part }}</h3>
+                        {% endif %}
+                        {% for ingredient in part.list %}
+                            <li>{{ ingredient }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if recipe.yields %}
+                <p>Yields: {{ recipe.yields }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-6" id="main-recipe">
+            <div id="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    {% for part in recipe.instructions %}
+                        {% if part.part %}
+                            <h3>{{ part.part }}</h3>
+                        {% endif %}
+                        {% for step in part.list %}
+                            <li>
+                                {{ step }}
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ol>
+            </div>
+
+            <div id="changelog" style="display: none;">
+                <h2>Changelog</h2>
+                <ul>
+                    {% for change in recipe.changelog %}
+                        <li>
+                            Date: {{ change.date }}
+                            <ul>
+                                {% for comment in change.list %}
+                                    <li>{{ comment }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function changeLogButton() {
+            var x = document.getElementById("changelog");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+{% endblock %}
+
+{% block sidebar %}
+    <h3 class="sidebarHeading">Downloads</h3>
+    <ul class="sidebar-list  list-unstyled">
+        <li><a class="button" href="{% url 'cookbook:download_yaml' recipe.pk %}">Recipe source</a></li>
+        <li><a class="button" href="{% url 'cookbook:download_tex' recipe.pk %}">Recipe .tex</a></li>
+        <li><a class="button" href="{% url 'cookbook:download_pdf' recipe.pk %}">Recipe PDF</a></li>
+    </ul>
+    <div class="line"></div>
+    <ul class="sidebar-list list-unstyled">
+        <li><a onclick="changeLogButton()" id="changelog-button" class="button">Toggle changelog</a></li>
+    </ul>
+    <div class="line"></div>
+{% endblock %}

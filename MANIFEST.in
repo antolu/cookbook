@@ -1,0 +1,7 @@
+include README.rst
+recursive-include cookbook/static *
+recursive-include cookbook/templates *
+recursive-include docs *
+include cookbook.sty
+recursive-include fonts *
+
