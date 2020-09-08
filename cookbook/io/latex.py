@@ -2,6 +2,7 @@ import logging
 from glob import glob
 from os import path, mkdir, remove
 from os import popen as shell
+import os
 import inspect
 from sys import exit
 
@@ -134,11 +135,12 @@ def compile(file: str) -> None:
     RuntimeError:
         If xelatex or latexmk cannot be count.
     """
+    log.info('Current path variable: {}'.format(os.getenv('PATH')))
     if which('latexmk') is None or which('xelatex') is None:
         raise RuntimeError('xelatex or latexmk could not be found. Leaving Latex source files as-is.')
 
     output_dir = path.split(file)[0]
-    command = r'latexmk -xelatex -output-directory={} {}'.format(
+    command = r'/usr/local/texlive/2020/bin/x86_64-linux/latexmk -xelatex -output-directory={} {}'.format(
         output_dir.replace(' ', '\\ '), file.replace(' ', '\\ '))
     log.info('Running shell command {}'.format(command))
     code = shell(command).read()

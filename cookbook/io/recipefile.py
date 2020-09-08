@@ -161,7 +161,7 @@ class RecipeFile:
                             else:
                                 middlehand[-1]['date'] = val
                         else:
-                            raise KeyError('Key {} is not a valid ')
+                            raise KeyError('Key {} is not a valid '.format(key))
                     elif isinstance(item, str):
                         if 'list' not in middlehand[-1]:
                             middlehand[-1]['list'] = list()

@@ -9,8 +9,14 @@
     {% if recipe.description %}
         <p>{{ recipe.description }}</p>
     {% endif %}
-    <div class="row">
+    <div class="row justify-content-start">
         <div class="col-md-4" id="info-bar">
+            {% if recipe.cooking_time %}
+                <p>Cooking time: {{ recipe.cooking_time }}</p>
+            {% endif %}
+            {% if recipe.temperature %}
+                <p>Temperature: {{ recipe.temperature }} degrees</p>
+            {% endif %}
             <div id="ingredients">
                 <h2>Ingredients</h2>
                 <ul class="list-unstyled">
@@ -27,11 +33,8 @@
             {% if recipe.yields %}
                 <p>Yields: {{ recipe.yields }}</p>
             {% endif %}
-            {% if recipe.cooking_time %}
-                <p>Cooking time: {{ recipe.cooking_time }}</p>
-            {% endif %}
         </div>
-        <div class="col-md-8" id="main-recipe">
+        <div class="col-md-6" id="main-recipe">
             <div id="instructions">
                 <h2>Instructions</h2>
                 <ol>
