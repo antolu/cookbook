@@ -38,7 +38,7 @@ def handle_uploaded_file(f):
                     current_version.__dict__[field] = output[field]
 
             current_version.save()
-            return
+            return current_version
 
         except Recipe.DoesNotExist:
             pass

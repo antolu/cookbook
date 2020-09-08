@@ -15,12 +15,12 @@ $(document).ready(function () {
     });
     $('#sidebarCollapse').on('click', function () {
         $('#sidebar').toggleClass('active');
-        $('#sidebarCollapse').toggleClass('active');
         $('#content').toggleClass('active');
         $('#hdr').toggleClass('active');
-        $('.overlay').toggleClass('active');
-        $('.collapse.in').toggleClass('in');
+      //  $('.collapse.in').toggleClass('in');
         $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+        $('#sidebarCollapse').toggleClass('active');
+        $('.overlay').toggleClass('active');
     });
 });
 $(document).ready(function () {

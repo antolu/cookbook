@@ -68,12 +68,13 @@ a:focus {
 
 #content {
     width: calc(100% - 270px);
-    transition: all 0.3s;
+    transition: all 0.3s; 
     position: absolute;
     top: 100px;
     left: 250px;
     padding: 10px 20px 10px;
     margin: 10px 20px 10px;
+    text-align: left;
 }
 
 #content.active {
@@ -95,7 +96,7 @@ a:focus {
     display: block;
     background: #555;
     transition: all 0.5s cubic-bezier(0.810, -0.330, 0.345, 1.375);
-    transition-delay: -0.1s;
+    transition-delay: -0.3s;
 }
 
 #sidebarCollapse span:first-of-type {
@@ -153,6 +154,8 @@ input.hidden {
 }
 
 #ingredients h3 {
+	padding-top: 20px;
+	padding-left: 0;
     font-size: 18px;
 }
 
@@ -161,6 +164,8 @@ input.hidden {
 }
 
 #instructions h3 {
+	padding-top: 20px;
+	padding-left: 0;
     font-size: 18px;
 }
 
@@ -269,7 +274,6 @@ ul ul a {
 
     #sidebar {
         margin-left: -250px;
-        transform-origin: bottom left; /* Set the transformed position of sidebar to center left side. */
     }
 
     #sidebar.active {
@@ -287,8 +291,8 @@ ul ul a {
         right: 10px;
         cursor: pointer;
         -webkit-transition: all 0.3s;
-        -o-transition: all 0.3s;
-        transition: all 0.3s;
+        -o-transition: all 0.2s;
+        transition: all 0.2s;
     }
 
     #dismiss:hover {
@@ -304,7 +308,7 @@ ul ul a {
         background: rgba(0, 0, 0, 0.7);
         z-index: 100;
         opacity: 0;
-        transition: all 0.7s ease-in-out;
+        transition: all 0.2s ease-in-out;
     }
 
     .overlay.active {
@@ -337,7 +341,7 @@ ul ul a {
     }
 
     #content {
-        width: 100%;
+        width: calc(100% - 20px);
         padding: 20px;
         min-height: 100vh;
         transition: all 0.3s;
