@@ -15,9 +15,9 @@ init () {
 	if [[ ! -z $DOCKERFILE ]]; then
 		cat <<EOF | sed -i "/^\# BEGIN SUBMODULES/r /dev/stdin" $DOCKERFILE
 $BEGIN
+RUN bash -c "cd $repodir && pip install -e"
 RUN bash -c "source $repodir/tests/tools.sh && installTeXLive"
 ENV PATH /usr/local/texlive/2020/bin/x86_64-linux:\$PATH
-ENV PYTHONPATH $repodir:$PYTHONPATH
 $END
 EOF
 	fi
