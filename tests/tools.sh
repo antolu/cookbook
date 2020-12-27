@@ -25,6 +25,7 @@ EOF
 	if [[ ! -z $DOCKERCOMPOSE ]]; then
 		cat <<EOF | sed -i "/\# BEGIN SUBMODULES/r /dev/stdin" $DOCKERCOMPOSE
         $BEGIN
+        pip install -e $repodir
         source $repodir/tests/tools.sh
         installStylesheet
         python ./manage.py makemigrations cookbook
