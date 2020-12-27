@@ -1,8 +1,8 @@
 import uuid
 
 from django.db.models import Model, CharField, DurationField, DateField, ManyToManyField, BooleanField, UUIDField, \
-    IntegerField, TextField
-from django.contrib.postgres.fields import JSONField, ArrayField
+    IntegerField, TextField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django_extensions.db.fields import AutoSlugField
 from django.utils.translation import gettext_lazy as _
