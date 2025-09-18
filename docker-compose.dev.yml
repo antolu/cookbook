@@ -1,0 +1,119 @@
+# Development environment with live reload for Cookbook
+# Usage: ./dev.sh start
+# This will mount source code, run development servers
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: cookbook-backend-dev
+    volumes:
+      # Mount source code for live reload
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      # Preserve build artifacts
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY:-dev-session-secret}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - CORS_ORIGINS=http://localhost:3000,http://localhost,https://localhost
+      - COOKIE_SECURE=false
+      - COOKIE_DOMAIN=
+      - MAX_FILE_SIZE=52428800
+    command:
+      - "uvicorn"
+      - "app.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+      - "--reload"
+      - "--reload-dir"
+      - "/app"
+    ports:
+      - "8000:8000"  # Expose backend directly for development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - cookbook-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: cookbook-frontend-dev
+    volumes:
+      # Mount source code for live reload
+      - ./frontend:/app
+      # Preserve node_modules
+      - /app/node_modules
+      # Preserve build cache
+      - /app/.vite
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000/api
+      - CHOKIDAR_USEPOLLING=true  # For Docker file watching
+    command:
+      - "npm"
+      - "run"
+      - "dev"
+      - "--"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "3000"
+    ports:
+      - "3000:3000"  # Expose frontend for development
+    depends_on:
+      - backend
+    networks:
+      - cookbook-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: cookbook-db-dev
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-cookbook}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"  # Expose for development access
+    volumes:
+      - cookbook_dev_db_data:/var/lib/postgresql/data
+    networks:
+      - cookbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: cookbook-redis-dev
+    ports:
+      - "6379:6379"  # Expose for development access
+    volumes:
+      - cookbook_dev_redis_data:/data
+    networks:
+      - cookbook-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  cookbook_dev_db_data:
+  cookbook_dev_redis_data:
+
+networks:
+  cookbook-network:
+    driver: bridge

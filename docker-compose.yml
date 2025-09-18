@@ -1,0 +1,109 @@
+# Production environment for Cookbook
+
+services:
+  frontend:
+    image: antonlu/cookbook-frontend:latest
+    container_name: cookbook-frontend
+    environment:
+      - BACKEND_URL=http://backend:8000
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - cookbook-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    image: antonlu/cookbook-backend:latest
+    container_name: cookbook-backend
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY}
+      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,https://localhost}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-52428800}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - db
+      - redis
+    networks:
+      - cookbook-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    expose:
+      - "8000"
+
+  db:
+    image: postgres:15-alpine
+    container_name: cookbook-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-cookbook}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cookbook-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: cookbook-redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - cookbook-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database migration service
+  migrate:
+    image: antonlu/cookbook-backend:latest
+    container_name: cookbook-migrate
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
+      - SECRET_KEY=${SECRET_KEY}
+      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      - db
+    networks:
+      - cookbook-network
+    restart: "no"
+
+networks:
+  cookbook-network:
+    driver: bridge
+    name: cookbook-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

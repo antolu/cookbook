@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from app.api import recipes
+from app.config import settings
+from app.core.redis import close_redis, init_redis
+
+
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await init_redis()
+    yield
+    # Shutdown
+    await close_redis()
+
+
+app = FastAPI(
+    title="Cookbook API",
+    description="Modern recipe management system",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# No cache middleware for API endpoints
+app.add_middleware(NoCacheMiddleware)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routes
+app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
+
+# Static files
+app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+
+
+@app.get("/")
+async def root():
+    return {"message": "Cookbook API", "version": "1.0.0"}
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": "2025-09-18T23:00:00Z"}
+
+
+@app.get("/api/health")
+async def api_health_check():
+    return {"status": "healthy", "api": "ready", "timestamp": "2025-09-18T23:00:00Z"}
