@@ -144,12 +144,14 @@ run_lint() {
     # Backend linting
     print_status "Running backend linting..."
     docker compose -f docker-compose.dev.yml exec backend ruff check --fix --unsafe-fixes --preview
-    docker compose -f docker-compose.dev.yml exec backend black .
+    docker compose -f docker-compose.dev.yml exec backend ruff format
     docker compose -f docker-compose.dev.yml exec backend mypy .
 
-    # Frontend linting (if available)
+    # Frontend linting
     print_status "Running frontend linting..."
-    docker compose -f docker-compose.dev.yml exec frontend npm run lint || true
+    docker compose -f docker-compose.dev.yml exec frontend npm run lint:fix || true
+    docker compose -f docker-compose.dev.yml exec frontend npm run format || true
+    docker compose -f docker-compose.dev.yml exec frontend npm run lint:style:fix || true
 }
 
 # Function to run database migrations
@@ -180,6 +182,25 @@ shell() {
     docker compose -f docker-compose.dev.yml exec "$service" /bin/bash
 }
 
+# Function to setup pre-commit hooks
+setup_precommit() {
+    print_status "Setting up pre-commit hooks..."
+
+    # Install pre-commit in backend container
+    docker compose -f docker-compose.dev.yml exec backend pip install pre-commit
+    docker compose -f docker-compose.dev.yml exec backend pre-commit install
+
+    print_status "Pre-commit hooks installed!"
+    print_status "Hooks will run automatically on git commit"
+    print_status "To run manually: ./dev.sh precommit"
+}
+
+# Function to run pre-commit manually
+run_precommit() {
+    print_status "Running pre-commit hooks..."
+    docker compose -f docker-compose.dev.yml exec backend pre-commit run --all-files
+}
+
 # Function to show help
 show_help() {
     echo "Cookbook Development Environment Management"
@@ -199,6 +220,8 @@ show_help() {
     echo "  migrate            Run database migrations"
     echo "  migration 'msg'    Create new migration with message"
     echo "  shell [service]    Open shell in container (default: backend)"
+    echo "  setup-precommit    Setup pre-commit hooks"
+    echo "  precommit          Run pre-commit hooks manually"
     echo "  help               Show this help message"
     echo ""
     echo "Development URLs:"
@@ -254,6 +277,12 @@ case "${1:-help}" in
         ;;
     "shell")
         shell "$@"
+        ;;
+    "setup-precommit")
+        setup_precommit
+        ;;
+    "precommit")
+        run_precommit
         ;;
     "help"|*)
         show_help

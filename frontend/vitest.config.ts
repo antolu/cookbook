@@ -1,0 +1,63 @@
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    css: true,
+    reporters: ['verbose'],
+    outputFile: './coverage/test-report.html',
+    // Resource limits to prevent process spawning issues
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+        maxForks: 1,
+        minForks: 1,
+      },
+    },
+    // Timeout configurations
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    teardownTimeout: 10000,
+    // Disable watch mode in CI-like runs
+    watch: false,
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        'src/**/*.d.ts',
+        'src/**/*.config.*',
+        'src/main.tsx',
+        'dist/',
+        'coverage/',
+        '*.config.*',
+      ],
+      thresholds: {
+        global: {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70,
+        },
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+      '@/components': resolve(__dirname, './src/components'),
+      '@/services': resolve(__dirname, './src/services'),
+      '@/utils': resolve(__dirname, './src/utils'),
+      '@/hooks': resolve(__dirname, './src/hooks'),
+      '@/types': resolve(__dirname, './src/types'),
+      '@/pages': resolve(__dirname, './src/pages'),
+      '@/test': resolve(__dirname, './src/test'),
+    },
+  },
+});
