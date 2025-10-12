@@ -5,8 +5,10 @@
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        BUILD_TYPE: development
     container_name: cookbook-backend-dev
     volumes:
       # Mount source code for live reload

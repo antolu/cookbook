@@ -8,10 +8,10 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install all dependencies (including dev dependencies)
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Expose port
 EXPOSE 3000

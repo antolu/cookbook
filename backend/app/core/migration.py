@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Dict, Any, List, Optional
+import os
+import re
 from datetime import datetime
+from typing import Dict, Any, List, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.recipe import Recipe
 from app.core.markdown import MarkdownRecipeParser
+from app.models.recipe import Recipe
 from app.schemas.recipe import RecipeCreate
 
 logger = logging.getLogger(__name__)
@@ -144,7 +147,6 @@ class DjangoToSQLAlchemyMigrator:
                     pass
 
         # Format: "X hours Y minutes" or similar
-        import re
         time_match = re.search(r'(\d+)\s*(?:hours?|hrs?|h)', duration_str, re.IGNORECASE)
         minutes_match = re.search(r'(\d+)\s*(?:minutes?|mins?|m)', duration_str, re.IGNORECASE)
 
@@ -180,59 +182,10 @@ class DjangoToSQLAlchemyMigrator:
 
     def _generate_slug(self, name: str) -> str:
         """Generate URL-friendly slug from recipe name."""
-        import re
         slug = name.lower()
         slug = re.sub(r'[^\w\s-]', '', slug)
         slug = re.sub(r'[-\s]+', '-', slug)
         return slug.strip('-')
-
-
-class QMLToMarkdownMigrator:
-    """Migrate QML recipe files to Markdown format."""
-
-    @staticmethod
-    def migrate_qml_file(qml_file_path: str, output_dir: str) -> str:
-        """Migrate a QML file to Markdown format."""
-        import os
-        from app.core.markdown import LegacyQMLConverter
-
-        # Read QML file
-        with open(qml_file_path, 'r', encoding='utf-8') as f:
-            qml_content = f.read()
-
-        # Convert to Markdown
-        markdown_content = LegacyQMLConverter.convert_qml_to_markdown(qml_content)
-
-        # Generate output filename
-        base_name = os.path.splitext(os.path.basename(qml_file_path))[0]
-        output_path = os.path.join(output_dir, f"{base_name}.md")
-
-        # Write Markdown file
-        os.makedirs(output_dir, exist_ok=True)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(markdown_content)
-
-        logger.info(f"Converted QML file {qml_file_path} to {output_path}")
-        return output_path
-
-    @staticmethod
-    def batch_migrate_qml_directory(qml_dir: str, output_dir: str) -> List[str]:
-        """Migrate all QML files in a directory to Markdown format."""
-        import os
-
-        migrated_files = []
-
-        for filename in os.listdir(qml_dir):
-            if filename.lower().endswith(('.qml', '.rcp')):
-                qml_path = os.path.join(qml_dir, filename)
-                try:
-                    output_path = QMLToMarkdownMigrator.migrate_qml_file(qml_path, output_dir)
-                    migrated_files.append(output_path)
-                except Exception as e:
-                    logger.error(f"Failed to migrate {qml_path}: {e}")
-
-        logger.info(f"Migrated {len(migrated_files)} QML files to Markdown")
-        return migrated_files
 
 
 async def run_full_migration(db_session: AsyncSession, django_recipes: List[Dict[str, Any]]) -> Dict[str, Any]:

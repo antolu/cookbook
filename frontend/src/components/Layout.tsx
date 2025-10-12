@@ -56,7 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <footer className="bg-white border-t border-gray-200 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-500 text-sm">
-            <p>&copy; 2024 Cookbook. A modern recipe management system.</p>
+            <p>&copy; {new Date().getFullYear()} Cookbook</p>
           </div>
         </div>
       </footer>

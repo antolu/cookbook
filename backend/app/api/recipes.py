@@ -4,8 +4,10 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
 from app.crud.recipe import (
     create_recipe,
     delete_recipe,
@@ -230,79 +232,72 @@ async def get_recipe_stats(
     }
 
 
+@router.post("/validate")
+async def validate_recipe_markdown(
+    markdown_content: str,
+):
+    """Validate markdown recipe content and return errors/warnings."""
+    errors = validate_markdown_recipe(markdown_content)
+
+    # Try to parse to get field info
+    parsed_data = None
+    try:
+        parsed_data = MarkdownRecipeParser.parse_recipe(markdown_content)
+    except Exception:
+        pass
+
+    return {
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "parsed_fields": {
+            "name": parsed_data.name if parsed_data else None,
+            "difficulty": parsed_data.difficulty if parsed_data else None,
+            "cuisine": parsed_data.cuisine if parsed_data else None,
+            "category": parsed_data.category if parsed_data else None,
+        } if parsed_data else None
+    }
+
+
 @router.post("/upload")
 async def upload_recipe_file(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_session),
     # current_user=Depends(get_current_admin_user),  # TODO: Add auth
 ):
-    """Upload a recipe file (Markdown or legacy QML format)."""
-    from app.core.markdown import MarkdownRecipeParser, LegacyQMLConverter, validate_markdown_recipe
-
+    """Upload a recipe file (Markdown format)."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
     # Check file extension
-    if not file.filename.lower().endswith(('.md', '.markdown', '.rcp', '.qml')):
+    if not file.filename.lower().endswith(('.md', '.markdown')):
         raise HTTPException(
             status_code=400,
-            detail="Unsupported file format. Please use .md, .markdown, .rcp, or .qml files"
+            detail="Unsupported file format. Please use .md or .markdown files"
         )
 
     try:
         content = await file.read()
         content_str = content.decode('utf-8')
 
-        if file.filename.lower().endswith(('.md', '.markdown')):
-            # Handle Markdown files
-            validation_errors = validate_markdown_recipe(content_str)
-            if validation_errors:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid Markdown recipe: {'; '.join(validation_errors)}"
-                )
+        # Validate Markdown
+        validation_errors = validate_markdown_recipe(content_str)
+        if validation_errors:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid Markdown recipe: {'; '.join(validation_errors)}"
+            )
 
-            # Parse and create recipe
-            recipe_data = MarkdownRecipeParser.parse_recipe(content_str)
-            db_recipe = await create_recipe(db, recipe_data)
+        # Parse and create recipe
+        recipe_data = MarkdownRecipeParser.parse_recipe(content_str)
+        db_recipe = await create_recipe(db, recipe_data)
 
-            return {
-                "message": "Markdown recipe uploaded successfully",
-                "filename": file.filename,
-                "recipe_id": str(db_recipe.id),
-                "recipe_name": db_recipe.name,
-                "recipe_slug": db_recipe.slug
-            }
-
-        elif file.filename.lower().endswith(('.rcp', '.qml')):
-            # Handle legacy QML files
-            try:
-                # Convert QML to Markdown
-                markdown_content = LegacyQMLConverter.convert_qml_to_markdown(content_str)
-
-                # Parse the converted Markdown
-                recipe_data = MarkdownRecipeParser.parse_recipe(markdown_content)
-
-                # Add conversion note
-                if not recipe_data.notes:
-                    recipe_data.notes = []
-                recipe_data.notes.append(f"Converted from legacy QML file: {file.filename}")
-
-                db_recipe = await create_recipe(db, recipe_data)
-
-                return {
-                    "message": "QML recipe converted and uploaded successfully",
-                    "filename": file.filename,
-                    "recipe_id": str(db_recipe.id),
-                    "recipe_name": db_recipe.name,
-                    "recipe_slug": db_recipe.slug,
-                    "conversion_note": "Recipe was converted from QML format and may need review"
-                }
-            except Exception as qml_error:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Error converting QML file: {qml_error!s}"
-                ) from qml_error
+        return {
+            "message": "Recipe uploaded successfully",
+            "filename": file.filename,
+            "recipe_id": str(db_recipe.id),
+            "recipe_name": db_recipe.name,
+            "recipe_slug": db_recipe.slug
+        }
 
     except HTTPException:
         raise
@@ -319,9 +314,6 @@ async def export_recipe(
     db: AsyncSession = Depends(get_session),
 ):
     """Export recipe in various formats (markdown, json, pdf)."""
-    from fastapi.responses import Response
-    from app.core.markdown import MarkdownRecipeParser
-
     recipe = await get_recipe(db, recipe_id)
     if not recipe or not recipe.is_public:
         raise HTTPException(status_code=404, detail="Recipe not found")

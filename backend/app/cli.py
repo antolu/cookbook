@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal
 from app.core.migration import (
     DjangoToSQLAlchemyMigrator,
-    QMLToMarkdownMigrator,
     run_full_migration
 )
 from app.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
@@ -64,31 +63,6 @@ def migrate_django_recipes(
                     typer.echo(f"  - {error['recipe']}: {error['error']}")
 
     asyncio.run(run_migration())
-
-
-@app.command()
-def convert_qml_files(
-    qml_dir: str = typer.Argument(..., help="Directory containing QML files"),
-    output_dir: str = typer.Argument(..., help="Output directory for Markdown files"),
-):
-    """Convert QML recipe files to Markdown format."""
-
-    qml_path = Path(qml_dir)
-    output_path = Path(output_dir)
-
-    if not qml_path.exists():
-        typer.echo(f"Error: QML directory '{qml_dir}' does not exist", err=True)
-        raise typer.Exit(1)
-
-    # Create output directory
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    # Convert files
-    converted_files = QMLToMarkdownMigrator.batch_migrate_qml_directory(str(qml_path), str(output_path))
-
-    typer.echo(f"Converted {len(converted_files)} QML files to Markdown")
-    for file_path in converted_files:
-        typer.echo(f"  ✅ {Path(file_path).name}")
 
 
 @app.command()

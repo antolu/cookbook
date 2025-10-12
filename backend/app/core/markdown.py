@@ -228,59 +228,6 @@ class MarkdownRecipeParser:
         return '\n'.join(content_parts).strip()
 
 
-class LegacyQMLConverter:
-    """Converter for legacy QML recipe files."""
-
-    @staticmethod
-    def convert_qml_to_markdown(qml_content: str) -> str:
-        """Convert QML content to Markdown format."""
-        # This is a placeholder for QML conversion logic
-        # In practice, you would parse the QML format and convert to Markdown
-
-        # For now, return a basic template
-        return """---
-name: "Converted Recipe"
-description: "Recipe converted from QML format"
-servings: "4 people"
-difficulty: "medium"
-tags: ["converted"]
----
-
-## Description
-
-This recipe was converted from the legacy QML format.
-
-## Ingredients
-
-- Ingredient 1
-- Ingredient 2
-
-## Instructions
-
-1. Step 1
-2. Step 2
-
-## Notes
-
-- This recipe needs to be reviewed and updated after conversion
-"""
-
-    @staticmethod
-    def extract_qml_data(qml_content: str) -> Dict[str, Any]:
-        """Extract structured data from QML content."""
-        # Placeholder for QML parsing logic
-        return {
-            'name': 'Converted Recipe',
-            'description': 'Recipe converted from QML format',
-            'servings': '4 people',
-            'difficulty': 'medium',
-            'tags': ['converted'],
-            'ingredients': ['Ingredient 1', 'Ingredient 2'],
-            'instructions': ['Step 1', 'Step 2'],
-            'notes': ['This recipe needs to be reviewed after conversion']
-        }
-
-
 def validate_markdown_recipe(markdown_content: str) -> List[str]:
     """Validate a Markdown recipe and return list of errors."""
     errors = []
