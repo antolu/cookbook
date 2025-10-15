@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ChefHat, Search, Home, BookOpen } from 'lucide-react'
+import { ChefHat, Search, Home, BookOpen, PenSquare } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -41,6 +41,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <Search className="h-4 w-4" />
                 <span>Search</span>
+              </Link>
+              <Link
+                to="/editor"
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+              >
+                <PenSquare className="h-4 w-4" />
+                <span>New Recipe</span>
               </Link>
             </nav>
           </div>

@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage'
 import { RecipeDetailPage } from './pages/RecipeDetailPage'
 import { RecipeListPage } from './pages/RecipeListPage'
 import { SearchPage } from './pages/SearchPage'
+import { EditorPage } from './pages/EditorPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/recipes" element={<RecipeListPage />} />
         <Route path="/recipes/:slug" element={<RecipeDetailPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/editor" element={<EditorPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Layout>

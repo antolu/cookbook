@@ -8,6 +8,11 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
+from app.schemas.recipe_schema import (
+    RECIPE_FRONTMATTER_SCHEMA,
+    get_field_descriptions,
+    get_enum_values,
+)
 from app.crud.recipe import (
     create_recipe,
     delete_recipe,
@@ -255,6 +260,30 @@ async def validate_recipe_markdown(
             "cuisine": parsed_data.cuisine if parsed_data else None,
             "category": parsed_data.category if parsed_data else None,
         } if parsed_data else None
+    }
+
+
+@router.get("/editor/schema")
+async def get_recipe_schema():
+    """Get JSON Schema for recipe frontmatter validation."""
+    return {
+        "schema": RECIPE_FRONTMATTER_SCHEMA,
+        "field_descriptions": get_field_descriptions(),
+    }
+
+
+@router.get("/editor/autocomplete")
+async def get_autocomplete_data(db: AsyncSession = Depends(get_session)):
+    """Get autocomplete data for recipe editor."""
+    cuisines = await get_unique_cuisines(db)
+    categories = await get_unique_categories(db)
+    tags = await get_unique_tags(db)
+
+    return {
+        "cuisines": cuisines,
+        "categories": categories,
+        "tags": tags,
+        "difficulty": get_enum_values("difficulty"),
     }
 
 
