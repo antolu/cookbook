@@ -69,7 +69,6 @@ class RecipeResponse(RecipeBase):
     id: UUID
     slug: str
     language: str
-    total_time: Optional[int] = None
     created_at: datetime
     updated_at: datetime
     published_at: Optional[datetime] = None
@@ -126,7 +125,6 @@ class RecipeSearchResponse(BaseModel):
     total: int
     limit: int
     offset: int
-    has_more: bool
 
     @computed_field
     @property

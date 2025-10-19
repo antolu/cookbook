@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -239,7 +239,7 @@ async def get_recipe_stats(
 
 @router.post("/validate")
 async def validate_recipe_markdown(
-    markdown_content: str,
+    markdown_content: str = Body(..., media_type="text/plain"),
 ):
     """Validate markdown recipe content and return errors/warnings."""
     errors = validate_markdown_recipe(markdown_content)
