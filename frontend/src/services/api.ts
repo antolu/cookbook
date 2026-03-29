@@ -7,10 +7,11 @@ import {
   RecipeSearchParams,
   RecipeSearchResponse,
 } from '../types'
+import config from '../config'
 
 // Create axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: config.apiUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -19,13 +20,16 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config) => {
-    // Add auth token if available
-    const token = localStorage.getItem('auth_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  (axiosConfig) => {
+    // In integrated mode, add JWT token from localStorage if available
+    if (config.isIntegrated) {
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        axiosConfig.headers.Authorization = `Bearer ${token}`
+      }
     }
-    return config
+    // In development mode, no auth required
+    return axiosConfig
   },
   (error) => {
     return Promise.reject(error)
@@ -37,9 +41,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
-      localStorage.removeItem('auth_token')
-      window.location.href = '/login'
+      // In integrated mode, redirect to login
+      if (config.isIntegrated) {
+        localStorage.removeItem('auth_token')
+        window.location.href = '/login'
+      }
+      // In development mode, just log the error
+      else {
+        console.warn('Authentication not available in development mode')
+      }
     }
     return Promise.reject(error)
   }
