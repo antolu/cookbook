@@ -69,7 +69,8 @@ class DjangoToSQLAlchemyMigrator:
         logger.info(f"Migrated recipe: {new_recipe.name} (ID: {new_recipe.id})")
         return new_recipe
 
-    def _parse_django_recipe(self, django_data: dict[str, Any]) -> dict[str, Any]:
+    @staticmethod
+    def _parse_django_recipe(django_data: dict[str, Any]) -> dict[str, Any]:
         """Parse Django recipe data and clean it up."""
 
         # Parse JSON fields if they're strings
@@ -128,16 +129,17 @@ class DjangoToSQLAlchemyMigrator:
             "last_changed": last_changed,
         }
 
-    def _parse_duration(self, duration_str: str | None) -> int | None:
+    @staticmethod
+    def _parse_duration(duration_val: Any) -> int | None:
         """Parse Django DurationField to minutes."""
-        if not duration_str:
+        if not duration_val:
             return None
 
-        if isinstance(duration_str, int):
-            return duration_str
+        if isinstance(duration_val, int):
+            return duration_val
 
         # Handle various duration formats
-        duration_str = str(duration_str).strip()
+        duration_str: str = str(duration_val).strip()
 
         # Format: "HH:MM:SS" or "H:MM:SS"
         if ":" in duration_str:
@@ -166,6 +168,17 @@ class DjangoToSQLAlchemyMigrator:
 
         return total_minutes if total_minutes > 0 else None
 
+    @staticmethod
+    def _map_difficulty(difficulty_code: str | int | None) -> str | None:
+        if difficulty_code is None:
+            return "easy"
+        try:
+            lookup_key = int(difficulty_code)
+            mapping = {1: "easy", 2: "medium", 3: "hard"}
+            return mapping.get(lookup_key, "easy")
+        except (ValueError, TypeError):
+            return "easy"
+
     def _infer_difficulty(self, recipe_data: dict[str, Any]) -> str | None:
         """Infer difficulty from recipe data."""
         # Simple heuristics based on cooking time and instruction count
@@ -187,7 +200,8 @@ class DjangoToSQLAlchemyMigrator:
             return "medium"
         return "easy"
 
-    def _generate_slug(self, name: str) -> str:
+    @staticmethod
+    def _generate_slug(name: str) -> str:
         """Generate URL-friendly slug from recipe name."""
         slug = name.lower()
         slug = re.sub(r"[^\w\s-]", "", slug)
@@ -201,7 +215,7 @@ async def run_full_migration(
     """Run full migration from Django recipes to new format."""
 
     migrator = DjangoToSQLAlchemyMigrator(db_session)
-    migration_results = {"successful": 0, "failed": 0, "errors": []}
+    migration_results: dict[str, Any] = {"successful": 0, "failed": 0, "errors": []}
 
     for django_recipe in django_recipes:
         try:
