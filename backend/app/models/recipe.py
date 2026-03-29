@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, ARRAY
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, ARRAY
 from sqlalchemy.dialects.postgresql import UUID, JSON
 from sqlalchemy.orm import relationship
 
@@ -12,6 +12,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from typing import Optional, List, Dict, Any
+    from app.models.user import User
 
 
 class Recipe(Base):
@@ -55,6 +56,14 @@ class Recipe(Base):
     # Visibility and features
     is_public = Column(Boolean, default=True)
     is_featured = Column(Boolean, default=False)
+
+    # Author (optional, only used in integrated mode)
+    author_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

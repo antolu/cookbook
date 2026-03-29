@@ -7,7 +7,10 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, 
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
+from app.dependencies import get_current_user_optional, get_current_admin_user
+from app.models.user import User
 from app.schemas.recipe_schema import (
     RECIPE_FRONTMATTER_SCHEMA,
     get_field_descriptions,
@@ -180,11 +183,28 @@ async def get_recipe_detail(
 async def create_recipe_endpoint(
     recipe: RecipeCreate,
     db: AsyncSession = Depends(get_session),
-    # current_user=Depends(get_current_admin_user),  # TODO: Add auth
+    current_user: User | None = Depends(get_current_user_optional),
 ):
-    """Create a new recipe (admin only)."""
+    """
+    Create a new recipe.
+
+    In development mode: Anyone can create recipes.
+    In integrated mode: Requires authentication.
+    """
+    # In integrated mode, require authentication
+    if settings.is_integrated and current_user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required to create recipes",
+        )
+
     try:
-        db_recipe = await create_recipe(db, recipe)
+        # Set author_id if user is authenticated
+        recipe_data = recipe.model_dump()
+        if current_user:
+            recipe_data["author_id"] = current_user.id
+
+        db_recipe = await create_recipe(db, RecipeCreate(**recipe_data))
         return convert_to_response(db_recipe)
     except Exception as e:
         raise HTTPException(
@@ -197,13 +217,37 @@ async def update_recipe_endpoint(
     recipe_id: UUID,
     recipe_update: RecipeUpdate,
     db: AsyncSession = Depends(get_session),
-    # current_user=Depends(get_current_admin_user),  # TODO: Add auth
+    current_user: User | None = Depends(get_current_user_optional),
 ):
-    """Update recipe (admin only)."""
-    recipe = await update_recipe(db, recipe_id, recipe_update)
-    if not recipe:
+    """
+    Update recipe.
+
+    In development mode: Anyone can update recipes.
+    In integrated mode: Only recipe author or admin can update.
+    """
+    # In integrated mode, require authentication
+    if settings.is_integrated and current_user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required to update recipes",
+        )
+
+    # Get existing recipe
+    existing_recipe = await get_recipe(db, recipe_id)
+    if not existing_recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
+    # In integrated mode, check permissions
+    if settings.is_integrated and current_user:
+        is_author = existing_recipe.author_id == current_user.id
+        is_admin = current_user.is_superuser or current_user.is_admin
+        if not (is_author or is_admin):
+            raise HTTPException(
+                status_code=403,
+                detail="You can only update your own recipes",
+            )
+
+    recipe = await update_recipe(db, recipe_id, recipe_update)
     return convert_to_response(recipe)
 
 
@@ -211,9 +255,36 @@ async def update_recipe_endpoint(
 async def delete_recipe_endpoint(
     recipe_id: UUID,
     db: AsyncSession = Depends(get_session),
-    # current_user=Depends(get_current_admin_user),  # TODO: Add auth
+    current_user: User | None = Depends(get_current_user_optional),
 ):
-    """Delete recipe (admin only)."""
+    """
+    Delete recipe.
+
+    In development mode: Anyone can delete recipes.
+    In integrated mode: Only recipe author or admin can delete.
+    """
+    # In integrated mode, require authentication
+    if settings.is_integrated and current_user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required to delete recipes",
+        )
+
+    # Get existing recipe
+    existing_recipe = await get_recipe(db, recipe_id)
+    if not existing_recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # In integrated mode, check permissions
+    if settings.is_integrated and current_user:
+        is_author = existing_recipe.author_id == current_user.id
+        is_admin = current_user.is_superuser or current_user.is_admin
+        if not (is_author or is_admin):
+            raise HTTPException(
+                status_code=403,
+                detail="You can only delete your own recipes",
+            )
+
     success = await delete_recipe(db, recipe_id)
     if not success:
         raise HTTPException(status_code=404, detail="Recipe not found")
