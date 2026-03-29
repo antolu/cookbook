@@ -2,9 +2,8 @@ name: Update release draft
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    types: [closed]
+    tags:
+      - 'v*'
 
 jobs:
   update_release_draft:
