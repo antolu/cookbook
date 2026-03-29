@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import redis.asyncio as aioredis
 
-from app.config import settings
+from cookbook.config import settings
 
 redis_client: aioredis.Redis | None = None
 

@@ -9,9 +9,9 @@ from typing import Dict, Any, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.markdown import MarkdownRecipeParser
-from app.models.recipe import Recipe
-from app.schemas.recipe import RecipeCreate
+from cookbook.core.markdown import MarkdownRecipeParser
+from cookbook.models.recipe import Recipe
+from cookbook.schemas.recipe import RecipeCreate
 
 logger = logging.getLogger(__name__)
 

@@ -8,11 +8,11 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, T
 from sqlalchemy.dialects.postgresql import UUID, JSON
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from cookbook.database import Base
 
 if TYPE_CHECKING:
     from typing import Optional, List, Dict, Any
-    from app.models.user import User
+    from cookbook.models.user import User
 
 
 class Recipe(Base):

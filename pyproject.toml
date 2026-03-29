@@ -1,14 +1,17 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "cookbook/_version.py"
+local_scheme = "no-local-version"
 
 [project]
 name = "cookbook"
-version = "1.0.0"
+dynamic = ["version", "readme"]
 description = "Modern recipe management system with FastAPI backend and React frontend"
 authors = [{name = "Anton Lu", email = "hello@antonlu.com"}]
 license = {text = "MIT"}
-readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -17,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "fastapi~=0.104.1",
@@ -40,6 +44,13 @@ dependencies = [
     "fastapi-users[sqlalchemy]~=12.1.2",
     "pyjwt~=2.8.0",
 ]
+
+[project.scripts]
+cookbook = "cookbook.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cookbook*"]
 
 [project.optional-dependencies]
 test = [
@@ -79,7 +90,7 @@ addopts = [
     "-v",
     "--strict-markers",
     "--strict-config",
-    "--cov=app",
+    "--cov=cookbook",
     "--cov-report=html",
     "--cov-report=term-missing",
     "--cov-fail-under=80",
@@ -105,7 +116,7 @@ filterwarnings = [
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["app"]
+source = ["cookbook"]
 omit = [
     "*/tests/*",
     "*/venv/*",
@@ -247,7 +258,7 @@ ignore = [
 "docs/**" = [
   "SLF001",    # Private member accessed (needed for docs)
 ]
-"app/core/image_processor.py" = [
+"cookbook/core/image_processor.py" = [
   "SLF001",    # Private member accessed (_getexif is the correct PIL API)
 ]
 "test_simple.py" = [

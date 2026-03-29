@@ -7,9 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api import recipes
-from app.config import settings
-from app.core.redis import close_redis, init_redis
+from cookbook.api import recipes
+from cookbook.config import settings
+from cookbook.core.redis import close_redis, init_redis
+import uvicorn
 
 
 class NoCacheMiddleware(BaseHTTPMiddleware):
@@ -72,3 +73,11 @@ async def health_check():
 @app.get("/api/health")
 async def api_health_check():
     return {"status": "healthy", "api": "ready", "timestamp": "2025-09-18T23:00:00Z"}
+
+
+def main() -> None:
+    uvicorn.run("cookbook.main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+if __name__ == "__main__":
+    main()

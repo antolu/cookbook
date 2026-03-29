@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from app.models.recipe import Recipe
-from app.schemas.recipe import RecipeCreate, RecipeUpdate, RecipeSearchParams
+from cookbook.models.recipe import Recipe
+from cookbook.schemas.recipe import RecipeCreate, RecipeUpdate, RecipeSearchParams
 
 
 async def create_recipe(db: AsyncSession, recipe: RecipeCreate) -> Recipe:

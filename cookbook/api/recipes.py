@@ -7,16 +7,16 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, 
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
-from app.dependencies import get_current_user_optional, get_current_admin_user
-from app.models.user import User
-from app.schemas.recipe_schema import (
+from cookbook.config import settings
+from cookbook.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
+from cookbook.dependencies import get_current_user_optional, get_current_admin_user
+from cookbook.models.user import User
+from cookbook.schemas.recipe_schema import (
     RECIPE_FRONTMATTER_SCHEMA,
     get_field_descriptions,
     get_enum_values,
 )
-from app.crud.recipe import (
+from cookbook.crud.recipe import (
     create_recipe,
     delete_recipe,
     get_recipe,
@@ -32,8 +32,8 @@ from app.crud.recipe import (
     search_recipes,
     update_recipe,
 )
-from app.database import get_session
-from app.schemas.recipe import (
+from cookbook.database import get_session
+from cookbook.schemas.recipe import (
     RecipeCreate,
     RecipeResponse,
     RecipeUpdate,

@@ -12,9 +12,9 @@ from fastapi_users.authentication import (
 from fastapi_users.db import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.database import get_session
-from app.models.user import User
+from cookbook.config import settings
+from cookbook.database import get_session
+from cookbook.models.user import User
 
 if TYPE_CHECKING:
     from uuid import UUID

@@ -6,7 +6,7 @@ import frontmatter
 import yaml
 from datetime import datetime
 
-from app.schemas.recipe import RecipeCreate
+from cookbook.schemas.recipe import RecipeCreate
 
 
 class MarkdownRecipeParser:

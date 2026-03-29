@@ -7,9 +7,9 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.database import get_session
-from app.models.user import User
+from cookbook.config import settings
+from cookbook.database import get_session
+from cookbook.models.user import User
 
 if TYPE_CHECKING:
     from uuid import UUID

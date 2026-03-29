@@ -9,12 +9,12 @@ from typing import List, Dict, Any
 import typer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import AsyncSessionLocal
-from app.core.migration import (
+from cookbook.database import AsyncSessionLocal
+from cookbook.core.migration import (
     DjangoToSQLAlchemyMigrator,
     run_full_migration
 )
-from app.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
+from cookbook.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
