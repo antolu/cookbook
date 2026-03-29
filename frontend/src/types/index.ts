@@ -131,5 +131,5 @@ export interface PaginationInfo {
 export const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard'] as const;
 export const TIME_UNITS = ['minutes', 'hours'] as const;
 
-export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number];
-export type TimeUnit = typeof TIME_UNITS[number];
+export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[number];
+export type TimeUnit = (typeof TIME_UNITS)[number];

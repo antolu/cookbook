@@ -1,23 +1,17 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { Clock, Users, Star, ChefHat } from 'lucide-react'
-import { RecipeListItem } from '../types'
-import { formatTime } from '../utils/time'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Clock, Users, Star, ChefHat } from 'lucide-react';
+import { RecipeListItem } from '../types';
+import { formatTime } from '../utils/time';
 
 interface RecipeCardProps {
-  recipe: RecipeListItem
-  showFeaturedBadge?: boolean
+  recipe: RecipeListItem;
+  showFeaturedBadge?: boolean;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({
-  recipe,
-  showFeaturedBadge = true
-}) => {
+export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, showFeaturedBadge = true }) => {
   return (
-    <Link
-      to={`/recipes/${recipe.slug}`}
-      className="recipe-card block group"
-    >
+    <Link to={`/recipes/${recipe.slug}`} className="recipe-card block group">
       <div className="relative">
         {/* Recipe Image */}
         <div className="recipe-card-image-container relative overflow-hidden bg-gray-100">
@@ -43,15 +37,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
         {/* Recipe Content */}
         <div className="recipe-card-content">
-          <h3 className="recipe-card-title group-hover:text-primary-600">
-            {recipe.name}
-          </h3>
+          <h3 className="recipe-card-title group-hover:text-primary-600">{recipe.name}</h3>
 
-          {recipe.description && (
-            <p className="recipe-card-description">
-              {recipe.description}
-            </p>
-          )}
+          {recipe.description && <p className="recipe-card-description">{recipe.description}</p>}
 
           {/* Recipe Meta */}
           <div className="recipe-card-meta">
@@ -73,36 +61,28 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
             {/* Difficulty */}
             {recipe.difficulty && (
-              <span className={`tag tag-difficulty-${recipe.difficulty}`}>
-                {recipe.difficulty}
-              </span>
+              <span className={`tag tag-difficulty-${recipe.difficulty}`}>{recipe.difficulty}</span>
             )}
 
             {/* Cuisine */}
-            {recipe.cuisine && (
-              <span className="tag">
-                {recipe.cuisine}
-              </span>
-            )}
+            {recipe.cuisine && <span className="tag">{recipe.cuisine}</span>}
           </div>
 
           {/* Tags */}
           {recipe.tags && recipe.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {recipe.tags.slice(0, 3).map((tag) => (
+              {recipe.tags.slice(0, 3).map(tag => (
                 <span key={tag} className="tag text-xs">
                   {tag}
                 </span>
               ))}
               {recipe.tags.length > 3 && (
-                <span className="tag text-xs">
-                  +{recipe.tags.length - 3} more
-                </span>
+                <span className="tag text-xs">+{recipe.tags.length - 3} more</span>
               )}
             </div>
           )}
         </div>
       </div>
     </Link>
-  )
-}
+  );
+};

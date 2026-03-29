@@ -1,53 +1,54 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { RecipeEditor } from '../components/RecipeEditor'
-import axios from 'axios'
-import toast from 'react-hot-toast'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { RecipeEditor } from '../components/RecipeEditor';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export const EditorPage: React.FC = () => {
-  const navigate = useNavigate()
-  const [saving, setSaving] = useState(false)
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async (markdownContent: string) => {
     try {
-      setSaving(true)
+      setSaving(true);
 
       // Create a Blob and File to upload
-      const blob = new Blob([markdownContent], { type: 'text/markdown' })
-      const file = new File([blob], 'recipe.md', { type: 'text/markdown' })
+      const blob = new Blob([markdownContent], { type: 'text/markdown' });
+      const file = new File([blob], 'recipe.md', { type: 'text/markdown' });
 
-      const formData = new FormData()
-      formData.append('file', file)
+      const formData = new FormData();
+      formData.append('file', file);
 
       const response = await axios.post(`${API_BASE}/recipes/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      })
+      });
 
-      toast.success(`Recipe "${response.data.recipe_name}" created successfully!`)
+      toast.success(`Recipe "${response.data.recipe_name}" created successfully!`);
 
       // Navigate to the recipe detail page
       setTimeout(() => {
-        navigate(`/recipes/${response.data.recipe_slug}`)
-      }, 1000)
+        navigate(`/recipes/${response.data.recipe_slug}`);
+      }, 1000);
     } catch (error: any) {
-      console.error('Failed to save recipe:', error)
-      const errorMessage = error.response?.data?.detail || 'Failed to save recipe'
-      toast.error(errorMessage)
+      console.error('Failed to save recipe:', error);
+      const errorMessage = error.response?.data?.detail || 'Failed to save recipe';
+      toast.error(errorMessage);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Create New Recipe</h1>
         <p className="text-gray-600 mt-2">
-          Write your recipe in Markdown format with YAML frontmatter. Use autocomplete for field suggestions.
+          Write your recipe in Markdown format with YAML frontmatter. Use autocomplete for field
+          suggestions.
         </p>
       </div>
 
@@ -62,5 +63,5 @@ export const EditorPage: React.FC = () => {
 
       <RecipeEditor onSave={handleSave} />
     </div>
-  )
-}
+  );
+};

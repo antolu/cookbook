@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock environment variables
 global.import = {
@@ -7,4 +7,4 @@ global.import = {
       VITE_API_URL: 'http://localhost:8000/api',
     },
   },
-} as any
+} as any;

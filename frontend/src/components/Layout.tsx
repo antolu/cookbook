@@ -1,9 +1,9 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { ChefHat, Search, Home, BookOpen, PenSquare } from 'lucide-react'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ChefHat, Search, Home, BookOpen, PenSquare } from 'lucide-react';
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
@@ -55,9 +55,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-16">
@@ -68,5 +66,5 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};

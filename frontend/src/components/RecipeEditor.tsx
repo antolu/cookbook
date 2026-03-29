@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import CodeMirror from '@uiw/react-codemirror'
-import { EditorView } from '@codemirror/view'
-import { createEditorExtensions } from '../utils/editorExtensions'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { createEditorExtensions } from '../utils/editorExtensions';
+import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 interface RecipeEditorProps {
-  initialValue?: string
-  onChange?: (value: string) => void
-  onSave?: (value: string) => void
+  initialValue?: string;
+  onChange?: (value: string) => void;
+  onSave?: (value: string) => void;
 }
 
 const DEFAULT_TEMPLATE = `---
@@ -50,82 +49,79 @@ featured: false
 ## Tips
 
 -
-`
+`;
 
 export const RecipeEditor: React.FC<RecipeEditorProps> = ({
   initialValue = DEFAULT_TEMPLATE,
   onChange,
   onSave,
 }) => {
-  const [value, setValue] = useState(initialValue)
-  const [extensions, setExtensions] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [value, setValue] = useState(initialValue);
+  const [extensions, setExtensions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Load schema and autocomplete data
   useEffect(() => {
     const loadEditorData = async () => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         const [schemaRes, autocompleteRes] = await Promise.all([
           axios.get(`${API_BASE}/recipes/editor/schema`),
           axios.get(`${API_BASE}/recipes/editor/autocomplete`),
-        ])
+        ]);
 
-        const editorExtensions = createEditorExtensions(
-          autocompleteRes.data,
-          schemaRes.data
-        )
+        const editorExtensions = createEditorExtensions(autocompleteRes.data, schemaRes.data);
 
-        setExtensions(editorExtensions)
+        setExtensions(editorExtensions);
       } catch (err) {
-        console.error('Failed to load editor data:', err)
-        setError('Failed to load editor configuration')
+        console.error('Failed to load editor data:', err);
+        setError('Failed to load editor configuration');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadEditorData()
-  }, [])
+    loadEditorData();
+  }, []);
 
   // Validate on change (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
-      if (!value) return
+      if (!value) return;
 
       try {
         const response = await axios.post(`${API_BASE}/recipes/validate`, value, {
-          headers: { 'Content-Type': 'text/plain' }
-        })
+          headers: { 'Content-Type': 'text/plain' },
+        });
 
-        setValidationErrors(response.data.errors || [])
+        setValidationErrors(response.data.errors || []);
       } catch (err) {
-        console.error('Validation error:', err)
+        console.error('Validation error:', err);
       }
-    }, 500)
+    }, 500);
 
-    return () => clearTimeout(timeoutId)
-  }, [value])
+    return () => clearTimeout(timeoutId);
+  }, [value]);
 
   const handleChange = (newValue: string) => {
-    setValue(newValue)
-    onChange?.(newValue)
-  }
+    setValue(newValue);
+    onChange?.(newValue);
+  };
 
   const handleSave = () => {
-    onSave?.(value)
-  }
+    onSave?.(value);
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="spinner h-12 w-12"></div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -133,7 +129,7 @@ export const RecipeEditor: React.FC<RecipeEditorProps> = ({
       <div className="bg-red-50 border border-red-200 rounded-md p-4">
         <p className="text-red-800">{error}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -158,9 +154,7 @@ export const RecipeEditor: React.FC<RecipeEditorProps> = ({
 
       {validationErrors.length > 0 && (
         <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <h3 className="text-sm font-semibold text-yellow-800 mb-2">
-            Validation Errors:
-          </h3>
+          <h3 className="text-sm font-semibold text-yellow-800 mb-2">Validation Errors:</h3>
           <ul className="list-disc list-inside text-sm text-yellow-700">
             {validationErrors.map((error, index) => (
               <li key={index}>{error}</li>
@@ -202,8 +196,12 @@ export const RecipeEditor: React.FC<RecipeEditorProps> = ({
       </div>
 
       <div className="mt-4 text-sm text-gray-600">
-        <p><strong>Tip:</strong> Press <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Ctrl+Space</kbd> for autocomplete</p>
+        <p>
+          <strong>Tip:</strong> Press{' '}
+          <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Ctrl+Space</kbd> for
+          autocomplete
+        </p>
       </div>
     </div>
-  )
-}
+  );
+};

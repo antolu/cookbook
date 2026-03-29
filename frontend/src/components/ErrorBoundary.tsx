@@ -1,46 +1,44 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
-  children: ReactNode
-  fallback?: ReactNode
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
-  hasError: boolean
-  error?: Error
+  hasError: boolean;
+  error?: Error;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false
-  }
+    hasError: false,
+  };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, error: undefined })
-  }
+    this.setState({ hasError: false, error: undefined });
+  };
 
   public render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       return (
         <div className="min-h-[400px] flex items-center justify-center">
           <div className="text-center space-y-4 max-w-md">
             <AlertTriangle className="h-12 w-12 text-red-500 mx-auto" />
-            <h2 className="text-xl font-semibold text-gray-900">
-              Something went wrong
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900">Something went wrong</h2>
             <p className="text-gray-600">
               We're sorry, but something unexpected happened. Please try refreshing the page.
             </p>
@@ -63,9 +61,9 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
