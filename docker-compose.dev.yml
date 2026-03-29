@@ -1,52 +1,59 @@
-# Development environment with live reload for Cookbook
-# Usage: ./dev.sh start
-# This will mount source code, run development servers
-
+# Development environment with live reload and nginx proxy
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      args:
-        BUILD_TYPE: development
-    container_name: cookbook-backend-dev
+  nginx:
+    image: nginx:alpine
+    container_name: cookbook-nginx
     volumes:
-      # Mount source code for live reload
-      - ./backend:/app
-      - ./uploads:/app/uploads
-      # Preserve build artifacts
-      - /app/__pycache__
-      - /app/.pytest_cache
-    environment:
-      - ENVIRONMENT=development
-      - APP_MODE=development
-      - API_PREFIX=/api
-      - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
-      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY:-dev-session-secret}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-      - CORS_ORIGINS=http://localhost:3000,http://localhost,https://localhost
-      - COOKIE_SECURE=false
-      - COOKIE_DOMAIN=
-      - MAX_FILE_SIZE=52428800
-    command:
-      - "uvicorn"
-      - "app.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "8000"
-      - "--reload"
-      - "--reload-dir"
-      - "/app"
+      - ./nginx/nginx.conf.dev:/etc/nginx/nginx.conf:ro
     ports:
-      - "8000:8000"  # Expose backend directly for development
+      - "6002:80"
     depends_on:
-      - db
-      - redis
+      - app
+      - frontend
     networks:
       - cookbook-network
+
+  app:
+    build:
+      context: .
+      args:
+        BUILD_TYPE: development
+    container_name: cookbook-app-dev
+    volumes:
+      - ./cookbook:/app/cookbook
+      - ./.git:/app/.git
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./README.md:/app/README.md
+      - ./.env:/app/.env
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+      - ./uploads:/app/uploads
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=development
+      - COOKBOOK_DATABASE_HOST=db
+      - COOKBOOK_DATABASE_PORT=5432
+      - COOKBOOK_DATABASE_USER=cookbook
+      - COOKBOOK_DATABASE_PASSWORD=cookbook
+      - COOKBOOK_DATABASE_NAME=cookbook
+      - COOKBOOK_REDIS_URL=redis://redis:6379/0
+      - COOKBOOK_SECURITY_AUTH_BASE_URL=${COOKBOOK_SECURITY_AUTH_BASE_URL:-http://auth-broker:8000}
+      - COOKBOOK_SECURITY_LOGIN_URL=${COOKBOOK_SECURITY_LOGIN_URL:-http://localhost/login}
+      - COOKBOOK_SECURITY_REDIRECT_URI=${COOKBOOK_SECURITY_REDIRECT_URI:-http://localhost:6002/api/auth/callback}
+    command: ["uvicorn", "cookbook.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/cookbook"]
+    ports:
+      - "6004:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      cookbook-network: {}
+      first-party-auth-network:
+        aliases:
+          - cookbook-app
 
   frontend:
     build:
@@ -54,70 +61,51 @@ services:
       dockerfile: Dockerfile.dev
     container_name: cookbook-frontend-dev
     volumes:
-      # Mount source code for live reload
       - ./frontend:/app
-      # Preserve node_modules
       - /app/node_modules
-      # Preserve build cache
-      - /app/.vite
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:8000/api
-      - CHOKIDAR_USEPOLLING=true  # For Docker file watching
-    command:
-      - "npm"
-      - "run"
-      - "dev"
-      - "--"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "3000"
-    ports:
-      - "3000:3000"  # Expose frontend for development
-    depends_on:
-      - backend
+      - VITE_API_URL=/api
+      - VITE_AUTH_BASE_URL=${VITE_AUTH_BASE_URL:-http://localhost}
+      - VITE_AUTH_REDIRECT_URI=${VITE_AUTH_REDIRECT_URI:-http://localhost:6002/api/auth/callback}
     networks:
-      - cookbook-network
+      cookbook-network: {}
+      first-party-auth-network:
+        aliases:
+          - cookbook-frontend
 
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: cookbook-db-dev
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-cookbook}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_USER=cookbook
+      - POSTGRES_PASSWORD=cookbook
+      - POSTGRES_DB=cookbook
     ports:
-      - "5432:5432"  # Expose for development access
+      - "5436:5432" # Different port to avoid conflicts
     volumes:
-      - cookbook_dev_db_data:/var/lib/postgresql/data
-    networks:
-      - cookbook-network
+      - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U cookbook"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - cookbook-network
 
   redis:
     image: redis:7-alpine
     container_name: cookbook-redis-dev
-    ports:
-      - "6379:6379"  # Expose for development access
-    volumes:
-      - cookbook_dev_redis_data:/data
     networks:
       - cookbook-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
-
-volumes:
-  cookbook_dev_db_data:
-  cookbook_dev_redis_data:
 
 networks:
   cookbook-network:
     driver: bridge
+  first-party-auth-network:
+    external: true
