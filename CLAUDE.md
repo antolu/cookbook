@@ -4,9 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Cookbook is a modern recipe management application with FastAPI backend and React/TypeScript frontend. It's designed as a standalone app that can integrate into the haochen.lu portfolio ecosystem as a subapp.
+Cookbook is a modern recipe management application with FastAPI backend and React/TypeScript frontend. It supports two deployment modes:
+
+1. **Development Mode (Standalone)**: No authentication, own database, fast local development
+2. **Integrated Mode (Subapp)**: Integrates with haochen.lu, shares JWT auth and database
 
 Recipes are stored as Markdown files with YAML frontmatter, providing human-readable and version-controllable recipe storage.
+
+### Deployment Modes
+
+The app uses `APP_MODE` environment variable to switch between modes:
+
+- **Development mode** (`APP_MODE=development`): Default for local development, no authentication required
+- **Integrated mode** (`APP_MODE=integrated`): Production deployment as haochen.lu subapp, requires JWT authentication
+
+Key files for dual-mode support:
+- `backend/app/config.py`: Mode configuration and settings
+- `backend/app/dependencies.py`: Conditional authentication
+- `backend/app/database.py`: Schema prefix for integrated mode
+- `frontend/src/config.ts`: Frontend mode configuration
+
+See [DEPLOYMENT_MODES.md](DEPLOYMENT_MODES.md) for complete details.
 
 ## Development Workflow
 

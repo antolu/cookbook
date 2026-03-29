@@ -229,40 +229,42 @@ GET /api/recipes/recent
 
 ## Deployment
 
-### Production with Docker
+Cookbook supports two deployment modes:
 
-1. **Build images**:
+### Development Mode (Standalone)
+- No authentication required
+- Own database and Redis instance
+- Fast local development
+- Default mode when using `./dev.sh start`
+
+### Integrated Mode (Subapp in haochen.lu)
+- Shares JWT authentication with parent app
+- Uses parent's database (separate `cookbook` schema)
+- Recipe creation/editing requires authentication
+- Users can only edit their own recipes (or admins can edit all)
+
+See [DEPLOYMENT_MODES.md](DEPLOYMENT_MODES.md) for complete integration guide.
+
+### Quick Integration into haochen.lu
+
+1. **Environment Configuration**:
    ```bash
-   docker build -t cookbook-backend ./backend
-   docker build -t cookbook-frontend ./frontend
+   APP_MODE=integrated
+   SECRET_KEY=${HAOCHEN_SECRET_KEY}  # Must match parent!
+   DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/portfolio?options=-csearch_path%3Dcookbook
+   REDIS_URL=redis://redis:6379/1
+   API_PREFIX=/api/cookbook
    ```
 
-2. **Run with docker-compose**:
-   ```bash
-   ./dev.sh prod
-   ```
-
-### TrueNAS Integration
-
-This application is designed to run as part of the haochen.lu ecosystem:
-
-1. **Add to main docker-compose.yml**:
-   ```yaml
-   cookbook-backend:
-     image: antonlu/cookbook-backend:latest
-     environment:
-       - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/portfolio
-     depends_on: [db, redis]
-
-   cookbook-frontend:
-     image: antonlu/cookbook-frontend:latest
-     depends_on: [cookbook-backend]
-   ```
-
-2. **Register as subapp**:
+2. **Database Setup**:
    ```sql
-   INSERT INTO subapps (name, slug, description, url, icon, color)
-   VALUES ('Cookbook', 'cookbook', 'Recipe management system', '/cookbook', 'chef-hat', '#FF6B35');
+   CREATE SCHEMA cookbook;
+   ```
+
+3. **Register as subapp**:
+   ```sql
+   INSERT INTO subapps (name, slug, url, icon, color, requires_auth, admin_only)
+   VALUES ('Cookbook', 'cookbook', '/cookbook', '🍳', '#FF6B35', false, false);
    ```
 
 ## Configuration

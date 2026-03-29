@@ -19,6 +19,8 @@ services:
       - /app/.pytest_cache
     environment:
       - ENVIRONMENT=development
+      - APP_MODE=development
+      - API_PREFIX=/api
       - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
