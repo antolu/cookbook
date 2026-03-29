@@ -27,18 +27,16 @@ class RecipeBase(BaseModel):
     difficulty: str | None = Field(None, description="Difficulty level")
     cuisine: str | None = Field(None, description="Cuisine type")
     category: str | None = Field(None, description="Recipe category")
-    tags: list[str] | None = Field(default_factory=list, description="Recipe tags")
-
-    # Media
+    tags: list[str] = Field(default=[], description="Recipe tags")
     image_url: str | None = Field(None, description="Recipe image URL")
-
-    # Additional content
-    notes: list[str] | None = Field(default_factory=list, description="Recipe notes")
-    tips: list[str] | None = Field(default_factory=list, description="Recipe tips")
+    notes: list[str] = Field(default=[], description="Recipe notes")
+    tips: list[str] = Field(default=[], description="Recipe tips")
 
     # Visibility
-    is_public: bool = Field(True, description="Whether recipe is publicly visible")
-    is_featured: bool = Field(False, description="Whether recipe is featured")
+    is_public: bool = Field(
+        default=True, description="Whether recipe is publicly visible"
+    )
+    is_featured: bool = Field(default=False, description="Whether recipe is featured")
 
 
 class RecipeCreate(RecipeBase):
@@ -79,7 +77,6 @@ class RecipeResponse(RecipeBase):
     published_at: datetime | None = None
 
     @computed_field
-    @property
     def total_time(self) -> int | None:
         """Compute total time from prep and cook times."""
         if self.prep_time is not None and self.cook_time is not None:
@@ -135,7 +132,6 @@ class RecipeSearchResponse(BaseModel):
     offset: int
 
     @computed_field
-    @property
     def has_more(self) -> bool:
         """Check if there are more results."""
         return self.offset + self.limit < self.total

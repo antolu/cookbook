@@ -23,13 +23,16 @@ def migrate_django_recipes(
     django_export_file: str = typer.Argument(
         ..., help="Path to Django recipe export JSON file"
     ),
+    *,
     dry_run: bool = typer.Option(
-        False, "--dry-run", help="Preview migration without saving to database"
+        default=False,
+        param_decls=["--dry-run"],
+        help="Preview migration without saving to database",
     ),
-):
+) -> None:
     """Migrate recipes from Django JSON export to new SQLAlchemy format."""
 
-    async def run_migration():
+    async def run_migration() -> None:
         # Load Django export
         with open(django_export_file, encoding="utf-8") as f:
             django_data = json.load(f)
@@ -69,7 +72,7 @@ def migrate_django_recipes(
 @app.command()
 def validate_markdown_recipe_file(
     markdown_file: str = typer.Argument(..., help="Path to Markdown recipe file"),
-):
+) -> None:
     """Validate a Markdown recipe file."""
 
     file_path = Path(markdown_file)
@@ -94,7 +97,7 @@ def validate_markdown_recipe_file(
 @app.command()
 def parse_markdown_recipe(
     markdown_file: str = typer.Argument(..., help="Path to Markdown recipe file"),
-):
+) -> None:
     """Parse and display a Markdown recipe file."""
 
     file_path = Path(markdown_file)
@@ -129,11 +132,11 @@ def parse_markdown_recipe(
 
     except Exception as e:
         typer.echo(f"❌ Failed to parse recipe: {e}", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command()
-def export_sample_recipes():
+def export_sample_recipes() -> None:
     """Export sample Markdown recipes for testing."""
 
     samples = [

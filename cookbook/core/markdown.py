@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# ruff: noqa: PLR0912, PLR0915, PLR1702
 import re
 from datetime import datetime
 from typing import Any
@@ -26,33 +27,17 @@ class MarkdownRecipeParser:
         description = metadata.get("description")
         servings = metadata.get("servings") or metadata.get("makes")
 
-        # Parse timing
-        prep_time = MarkdownRecipeParser._parse_time(metadata.get("prep_time"))
-        cook_time = MarkdownRecipeParser._parse_time(metadata.get("cook_time"))
-        temperature = metadata.get("temperature")
-
-        # Parse metadata
+        # Parse timing and difficulty
+        prep_time = MarkdownRecipeParser.parse_duration(metadata.get("prep_time"))
+        cook_time = MarkdownRecipeParser.parse_duration(metadata.get("cook_time"))
         difficulty = metadata.get("difficulty")
+
+        # Parse cuisine and category
         cuisine = metadata.get("cuisine")
         category = metadata.get("category")
-        tags = metadata.get("tags", [])
-        if isinstance(tags, str):
-            tags = [tag.strip() for tag in tags.split(",")]
 
-        # Parse additional content
-        notes = metadata.get("notes", [])
-        tips = metadata.get("tips", [])
-        if isinstance(notes, str):
-            notes = [notes]
-        if isinstance(tips, str):
-            tips = [tips]
-
-        # Parse visibility
-        is_public = metadata.get("public", True)
-        is_featured = metadata.get("featured", False)
-
-        # Language
-        language = metadata.get("language", "en")
+        # Handle all lists and other metadata in a specialized helper to reduce local variables
+        extra_data = MarkdownRecipeParser._extract_extra_metadata(metadata)
 
         return RecipeCreate(
             name=name,
@@ -60,29 +45,55 @@ class MarkdownRecipeParser:
             servings=servings,
             prep_time=prep_time,
             cook_time=cook_time,
-            temperature=temperature,
+            temperature=metadata.get("temperature"),
+            image_url=metadata.get("image"),
             content=content,
             difficulty=difficulty,
             cuisine=cuisine,
             category=category,
-            tags=tags,
-            notes=notes,
-            tips=tips,
-            is_public=is_public,
-            is_featured=is_featured,
-            language=language,
+            tags=extra_data["tags"],
+            notes=extra_data["notes"],
+            tips=extra_data["tips"],
+            is_public=extra_data["is_public"],
+            is_featured=extra_data["is_featured"],
+            language=extra_data["language"],
         )
 
     @staticmethod
-    def _parse_time(time_str: str | None) -> int | None:
-        """Parse time string to minutes."""
-        if not time_str:
+    def _extract_extra_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+        """Extra helper to extract list-based and visibility metadata."""
+        return {
+            "tags": MarkdownRecipeParser._parse_list(metadata.get("tags", [])),
+            "notes": MarkdownRecipeParser._parse_list(metadata.get("notes", [])),
+            "tips": MarkdownRecipeParser._parse_list(metadata.get("tips", [])),
+            "is_public": metadata.get("public", True),
+            "is_featured": metadata.get("featured", False),
+            "language": metadata.get("language", "en") or "en",
+        }
+
+    @staticmethod
+    def _parse_list(value: Any) -> list[str]:
+        """Parse a value that could be a string or a list into a list of strings."""
+        if not value:
+            return []
+        if isinstance(value, str):
+            if "," in value:
+                return [item.strip() for item in value.split(",")]
+            return [value]
+        if isinstance(value, list):
+            return [str(item) for item in value]
+        return [str(value)]
+
+    @staticmethod
+    def parse_duration(time_val: Any) -> int | None:
+        """Parse time string or number to minutes."""
+        if not time_val:
             return None
 
-        if isinstance(time_str, int):
-            return time_str
+        if isinstance(time_val, int):
+            return time_val
 
-        time_str = str(time_str).lower().strip()
+        time_str: str = str(time_val).lower().strip()
 
         # Extract number and unit
         match = re.match(r"(\d+(?:\.\d+)?)\s*(minutes?|mins?|hours?|hrs?|h)?", time_str)
@@ -252,11 +263,12 @@ def validate_markdown_recipe(markdown_content: str) -> list[str]:
         if not metadata.get("name"):
             errors.append("Recipe name is required in frontmatter")
 
-        # Validate time formats
-        for time_field in ["prep_time", "cook_time"]:
-            if time_field in metadata:
-                if not MarkdownRecipeParser._parse_time(metadata[time_field]):
-                    errors.append(f"Invalid time format for {time_field}")
+        # Validate time formats - use list.extend to satisfy ruff
+        errors.extend([
+            f"Invalid time format for {tf}"
+            for tf in ["prep_time", "cook_time"]
+            if tf in metadata and not MarkdownRecipeParser.parse_duration(metadata[tf])
+        ])
 
         # Validate difficulty
         difficulty = metadata.get("difficulty")

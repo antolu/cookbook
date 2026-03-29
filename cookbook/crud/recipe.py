@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+import typing
 from uuid import UUID
 
 from sqlalchemy import and_, desc, func, or_
@@ -52,17 +51,18 @@ async def create_recipe(db: AsyncSession, recipe: RecipeCreate) -> Recipe:
 async def get_recipe(db: AsyncSession, recipe_id: UUID) -> Recipe | None:
     """Get a recipe by ID."""
     result = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
-    return result.scalar_one_or_none()
+    return typing.cast(Recipe | None, result.scalar_one_or_none())
 
 
 async def get_recipe_by_slug(db: AsyncSession, slug: str) -> Recipe | None:
     """Get a recipe by slug."""
     result = await db.execute(select(Recipe).where(Recipe.slug == slug))
-    return result.scalar_one_or_none()
+    return typing.cast(Recipe | None, result.scalar_one_or_none())
 
 
 async def get_recipes(
     db: AsyncSession,
+    *,
     skip: int = 0,
     limit: int = 20,
     public_only: bool = False,
@@ -80,7 +80,7 @@ async def get_recipes(
     query = query.order_by(desc(Recipe.created_at)).offset(skip).limit(limit)
 
     result = await db.execute(query)
-    return result.scalars().all()
+    return typing.cast(list[Recipe], list(result.scalars().all()))
 
 
 async def search_recipes(
@@ -156,7 +156,7 @@ async def search_recipes(
     )
 
     result = await db.execute(query)
-    recipes = result.scalars().all()
+    recipes = typing.cast(list[Recipe], list(result.scalars().all()))
 
     return recipes, total
 
@@ -206,7 +206,7 @@ async def delete_recipe(db: AsyncSession, recipe_id: UUID) -> bool:
     return True
 
 
-async def get_recipe_count(db: AsyncSession, public_only: bool = False) -> int:
+async def get_recipe_count(db: AsyncSession, *, public_only: bool = False) -> int:
     """Get total number of recipes."""
     query = select(func.count(Recipe.id))
 
@@ -214,7 +214,8 @@ async def get_recipe_count(db: AsyncSession, public_only: bool = False) -> int:
         query = query.where(Recipe.is_public)
 
     result = await db.execute(query)
-    return result.scalar()
+    count = result.scalar()
+    return int(count) if count is not None else 0
 
 
 async def get_featured_recipes(db: AsyncSession, limit: int = 5) -> list[Recipe]:
@@ -227,11 +228,11 @@ async def get_featured_recipes(db: AsyncSession, limit: int = 5) -> list[Recipe]
     )
 
     result = await db.execute(query)
-    return result.scalars().all()
+    return typing.cast(list[Recipe], list(result.scalars().all()))
 
 
 async def get_recent_recipes(
-    db: AsyncSession, limit: int = 10, public_only: bool = True
+    db: AsyncSession, *, limit: int = 10, public_only: bool = True
 ) -> list[Recipe]:
     """Get recently created recipes."""
     query = select(Recipe).order_by(desc(Recipe.created_at)).limit(limit)
@@ -240,11 +241,11 @@ async def get_recent_recipes(
         query = query.where(Recipe.is_public)
 
     result = await db.execute(query)
-    return result.scalars().all()
+    return typing.cast(list[Recipe], list(result.scalars().all()))
 
 
 async def get_recipes_by_category(
-    db: AsyncSession, category: str, limit: int = 20, public_only: bool = True
+    db: AsyncSession, category: str, *, limit: int = 20, public_only: bool = True
 ) -> list[Recipe]:
     """Get recipes by category."""
     query = (
@@ -258,7 +259,7 @@ async def get_recipes_by_category(
         query = query.where(Recipe.is_public)
 
     result = await db.execute(query)
-    return result.scalars().all()
+    return typing.cast(list[Recipe], list(result.scalars().all()))
 
 
 async def get_unique_categories(db: AsyncSession) -> list[str]:

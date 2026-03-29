@@ -1,3 +1,6 @@
+import typing
+from typing import Annotated
+
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +13,7 @@ from cookbook.models.user import User
 
 async def get_current_user_optional(
     request: Request,
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
 ) -> User | None:
     """
     Get current user from JWT token (cookie or header), or None if not authenticated.
@@ -35,11 +38,11 @@ async def get_current_user_optional(
 
     # Fetch user from database or return virtual user from payload
     result = await db.execute(select(User).where(User.id == user_id))
-    return result.scalar_one_or_none()
+    return typing.cast(User | None, result.scalar_one_or_none())
 
 
-async def get_current_user(
-    user: User | None = Depends(get_current_user_optional),
+def get_current_user(
+    user: Annotated[User | None, Depends(get_current_user_optional)],
 ) -> User:
     """Get current authenticated user, or raise 401."""
     if user is None:
@@ -50,8 +53,8 @@ async def get_current_user(
     return user
 
 
-async def get_current_admin_user(
-    user: User = Depends(get_current_user),
+def get_current_admin_user(
+    user: Annotated[User, Depends(get_current_user)],
 ) -> User:
     """Check if user has admin privileges."""
     if not user.is_admin:

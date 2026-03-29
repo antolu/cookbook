@@ -1,7 +1,8 @@
-from __future__ import annotations
+import typing
+from typing import Any
 
 # JSON Schema for recipe frontmatter validation
-RECIPE_FRONTMATTER_SCHEMA = {
+RECIPE_FRONTMATTER_SCHEMA: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "required": ["name"],
@@ -100,7 +101,9 @@ def get_field_descriptions() -> dict[str, str]:
 
 def get_enum_values(field: str) -> list[str] | None:
     """Get enum values for a field if it has any."""
-    props = RECIPE_FRONTMATTER_SCHEMA["properties"].get(field)
+    props = typing.cast(dict[str, Any], RECIPE_FRONTMATTER_SCHEMA["properties"]).get(
+        field
+    )
     if props and "enum" in props:
-        return props["enum"]
+        return typing.cast(list[str], props["enum"])
     return None

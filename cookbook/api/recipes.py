@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import typing
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
@@ -30,6 +31,7 @@ from cookbook.dependencies import (
     get_current_admin_user,
     get_current_user,
 )
+from cookbook.models.recipe import Recipe
 from cookbook.models.user import User
 from cookbook.schemas.recipe import (
     RecipeCreate,
@@ -48,22 +50,25 @@ from cookbook.schemas.recipe_schema import (
 router = APIRouter()
 
 
-def convert_to_response(db_recipe: typing.Any) -> RecipeResponse:
+def convert_to_response(db_recipe: Recipe) -> RecipeResponse:
     """Convert a database Recipe model to response schema."""
-    return RecipeResponse.model_validate(db_recipe)
+    return RecipeResponse.model_validate(db_recipe, from_attributes=True)  # type: ignore[no-any-return]
 
 
-def convert_to_list_item(db_recipe: typing.Any) -> RecipeListItem:
+def convert_to_list_item(db_recipe: Recipe) -> RecipeListItem:
     """Convert a database Recipe model to list item schema."""
-    return RecipeListItem.model_validate(db_recipe)
+    return RecipeListItem.model_validate(db_recipe, from_attributes=True)  # type: ignore[no-any-return]
 
 
 @router.get("/", response_model=list[RecipeListItem])
 async def list_recipes(
-    skip: int = Query(0, ge=0, description="Offset for pagination"),
-    limit: int = Query(20, ge=1, le=100, description="Number of results"),
-    featured_only: bool = Query(False, description="Show only featured recipes"),
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    *,
+    skip: Annotated[int, Query(ge=0, description="Offset for pagination")] = 0,
+    limit: Annotated[int, Query(ge=1, le=100, description="Number of results")] = 20,
+    featured_only: Annotated[
+        bool, Query(description="Show only featured recipes")
+    ] = False,
 ) -> list[RecipeListItem]:
     """List recipes with pagination."""
     recipes = await get_recipes(
@@ -74,48 +79,27 @@ async def list_recipes(
 
 @router.get("/search", response_model=RecipeSearchResponse)
 async def search_recipes_endpoint(
-    q: str | None = Query(None, description="Search query"),
-    category: str | None = Query(None, description="Filter by category"),
-    cuisine: str | None = Query(None, description="Filter by cuisine"),
-    difficulty: str | None = Query(None, description="Filter by difficulty"),
-    tags: list[str] | None = Query(None, description="Filter by tags"),
-    max_prep_time: int | None = Query(None, ge=0, description="Maximum prep time"),
-    max_cook_time: int | None = Query(None, ge=0, description="Maximum cook time"),
-    max_total_time: int | None = Query(None, ge=0, description="Maximum total time"),
-    is_featured: bool | None = Query(None, description="Filter featured recipes"),
-    limit: int = Query(20, ge=1, le=100, description="Number of results"),
-    offset: int = Query(0, ge=0, description="Offset for pagination"),
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    search_params: Annotated[RecipeSearchParams, Depends()],
 ) -> RecipeSearchResponse:
     """Search recipes with filters."""
-    search_params = RecipeSearchParams(
-        q=q,
-        category=category,
-        cuisine=cuisine,
-        difficulty=difficulty,
-        tags=tags,
-        max_prep_time=max_prep_time,
-        max_cook_time=max_cook_time,
-        max_total_time=max_total_time,
-        is_featured=is_featured,
-        limit=limit,
-        offset=offset,
-    )
 
     recipes, total = await search_recipes(db, search_params)
 
     return RecipeSearchResponse(
         recipes=[convert_to_list_item(recipe) for recipe in recipes],
         total=total,
-        limit=limit,
-        offset=offset,
+        limit=search_params.limit,
+        offset=search_params.offset,
     )
 
 
 @router.get("/featured", response_model=list[RecipeListItem])
 async def get_featured_recipes_endpoint(
-    limit: int = Query(5, ge=1, le=20, description="Number of featured recipes"),
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    limit: Annotated[
+        int, Query(ge=1, le=20, description="Number of featured recipes")
+    ] = 5,
 ) -> list[RecipeListItem]:
     """Get featured recipes."""
     recipes = await get_featured_recipes(db, limit=limit)
@@ -124,8 +108,10 @@ async def get_featured_recipes_endpoint(
 
 @router.get("/recent", response_model=list[RecipeListItem])
 async def get_recent_recipes_endpoint(
-    limit: int = Query(10, ge=1, le=20, description="Number of recent recipes"),
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    limit: Annotated[
+        int, Query(ge=1, le=20, description="Number of recent recipes")
+    ] = 10,
 ) -> list[RecipeListItem]:
     """Get recently created recipes."""
     recipes = await get_recent_recipes(db, limit=limit, public_only=True)
@@ -133,19 +119,21 @@ async def get_recent_recipes_endpoint(
 
 
 @router.get("/categories", response_model=list[str])
-async def get_categories(db: AsyncSession = Depends(get_session)) -> list[str]:
+async def get_categories(
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> list[str]:
     """Get all unique recipe categories."""
     return await get_unique_categories(db)
 
 
 @router.get("/cuisines", response_model=list[str])
-async def get_cuisines(db: AsyncSession = Depends(get_session)) -> list[str]:
+async def get_cuisines(db: Annotated[AsyncSession, Depends(get_session)]) -> list[str]:
     """Get all unique cuisines."""
     return await get_unique_cuisines(db)
 
 
 @router.get("/tags", response_model=list[str])
-async def get_tags(db: AsyncSession = Depends(get_session)) -> list[str]:
+async def get_tags(db: Annotated[AsyncSession, Depends(get_session)]) -> list[str]:
     """Get all unique tags."""
     return await get_unique_tags(db)
 
@@ -153,8 +141,8 @@ async def get_tags(db: AsyncSession = Depends(get_session)) -> list[str]:
 @router.get("/category/{category}", response_model=list[RecipeListItem])
 async def get_recipes_by_category_endpoint(
     category: str,
-    limit: int = Query(20, ge=1, le=100, description="Number of results"),
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    limit: Annotated[int, Query(ge=1, le=100, description="Number of results")] = 20,
 ) -> list[RecipeListItem]:
     """Get recipes by category."""
     recipes = await get_recipes_by_category(db, category, limit=limit, public_only=True)
@@ -163,7 +151,7 @@ async def get_recipes_by_category_endpoint(
 
 @router.get("/{recipe_identifier}", response_model=RecipeResponse)
 async def get_recipe_detail(
-    recipe_identifier: str, db: AsyncSession = Depends(get_session)
+    recipe_identifier: str, db: Annotated[AsyncSession, Depends(get_session)]
 ) -> RecipeResponse:
     """Get recipe by ID or slug."""
     recipe = None
@@ -174,19 +162,17 @@ async def get_recipe_detail(
         recipe = await get_recipe(db, recipe_id)
     except ValueError:
         # If not a valid UUID, treat as slug
-        recipe = await get_recipe_by_slug(db, recipe_identifier)
-
-    if not recipe or not recipe.is_public:
+        recipe = await get_recipe_by_slug(db, slug=recipe_identifier)
+    if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
-
     return convert_to_response(recipe)
 
 
 @router.post("/", response_model=RecipeResponse)
 async def create_recipe_endpoint(
     recipe: RecipeCreate,
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> RecipeResponse:
     """
     Create a new recipe.
@@ -208,8 +194,8 @@ async def create_recipe_endpoint(
 async def update_recipe_endpoint(
     recipe_id: UUID,
     recipe_update: RecipeUpdate,
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> RecipeResponse:
     """
     Update recipe. Only author or admin can update.
@@ -229,14 +215,15 @@ async def update_recipe_endpoint(
         )
 
     recipe = await update_recipe(db, recipe_id, recipe_update)
+    assert recipe is not None
     return convert_to_response(recipe)
 
 
 @router.delete("/{recipe_id}")
 async def delete_recipe_endpoint(
     recipe_id: UUID,
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
     """
     Delete recipe. Only author or admin can delete.
@@ -263,8 +250,8 @@ async def delete_recipe_endpoint(
 
 @router.get("/stats/summary")
 async def get_recipe_stats(
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_admin_user),
+    db: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_admin_user)],
 ) -> dict[str, int]:
     """Get recipe statistics (admin only)."""
     total_recipes = await get_recipe_count(db)
@@ -314,7 +301,7 @@ async def get_recipe_schema() -> dict[str, typing.Any]:
 
 @router.get("/editor/autocomplete")
 async def get_autocomplete_data(
-    db: AsyncSession = Depends(get_session),
+    db: Annotated[AsyncSession, Depends(get_session)],
 ) -> dict[str, list[str]]:
     """Get autocomplete data for recipe editor."""
     cuisines = await get_unique_cuisines(db)
@@ -325,15 +312,15 @@ async def get_autocomplete_data(
         "cuisines": cuisines,
         "categories": categories,
         "tags": tags,
-        "difficulty": get_enum_values("difficulty"),
+        "difficulty": typing.cast(list[str], get_enum_values("difficulty")),
     }
 
 
 @router.post("/upload")
 async def upload_recipe_file(
-    file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_admin_user),
+    file: Annotated[UploadFile, File(...)],
+    db: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_admin_user)],
 ) -> dict[str, str]:
     """Upload a recipe file (admin only)."""
     if not file.filename:
@@ -366,8 +353,8 @@ async def upload_recipe_file(
             "message": "Recipe uploaded successfully",
             "filename": file.filename,
             "recipe_id": str(db_recipe.id),
-            "recipe_name": db_recipe.name,
-            "recipe_slug": db_recipe.slug,
+            "recipe_name": str(db_recipe.name),
+            "recipe_slug": str(db_recipe.slug),
         }
 
     except HTTPException:
@@ -378,25 +365,25 @@ async def upload_recipe_file(
         ) from e
 
 
-@router.get("/{recipe_id}/export/{format}")
+@router.get("/{recipe_id}/export/{export_format}")
 async def export_recipe(
     recipe_id: UUID,
-    format: str,
-    db: AsyncSession = Depends(get_session),
+    export_format: str,
+    db: Annotated[AsyncSession, Depends(get_session)],
 ) -> Response | dict[str, typing.Any]:
     """Export recipe in various formats (markdown, json, pdf)."""
     recipe = await get_recipe(db, recipe_id)
     if not recipe or not recipe.is_public:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
-    if format not in {"markdown", "json", "pdf"}:
+    if export_format not in {"markdown", "json", "pdf"}:
         raise HTTPException(
             status_code=400,
             detail="Unsupported format. Use 'markdown', 'json', or 'pdf'",
         )
 
     try:
-        if format == "markdown":
+        if export_format == "markdown":
             # Convert recipe to Markdown
             recipe_dict = {
                 "name": recipe.name,
@@ -414,9 +401,6 @@ async def export_recipe(
                 "tags": recipe.tags or [],
                 "notes": recipe.notes or [],
                 "tips": recipe.tips or [],
-                "is_public": recipe.is_public,
-                "is_featured": recipe.is_featured,
-                "language": recipe.language,
                 "created_at": recipe.created_at,
                 "updated_at": recipe.updated_at,
                 "content": recipe.content or "",
@@ -434,7 +418,7 @@ async def export_recipe(
                 },
             )
 
-        if format == "json":
+        if export_format == "json":
             # Export as JSON
             recipe_data = convert_to_response(recipe)
 

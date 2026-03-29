@@ -7,9 +7,9 @@ from cookbook.config import settings
 redis_client: aioredis.Redis | None = None
 
 
-async def init_redis() -> None:
+def init_redis() -> None:
     """Initialize Redis connection."""
-    global redis_client
+    global redis_client  # noqa: PLW0603
     redis_client = aioredis.from_url(settings.redis_url, decode_responses=True)
 
 
@@ -19,8 +19,10 @@ async def close_redis() -> None:
         await redis_client.close()
 
 
-async def get_redis() -> aioredis.Redis:
+async def get_redis() -> aioredis.Redis:  # noqa: RUF029
     """Get Redis client."""
-    if not redis_client:
-        await init_redis()
+    global redis_client  # noqa: PLW0602
+    if redis_client is None:
+        init_redis()
+    assert redis_client is not None
     return redis_client

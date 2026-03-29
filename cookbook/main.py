@@ -16,17 +16,35 @@ from cookbook.config import settings
 from cookbook.core.redis import close_redis, init_redis
 
 
-def configure_static(app: FastAPI) -> None:
-    """
-    Configure static file serving for the React frontend.
-    In production, the frontend is built into cookbook/static.
-    """
-    static_dir = Path(__file__).parent / "static"
-    if static_dir.exists():
-        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> typing.AsyncGenerator[None]:
+    """Lifecycle events for the FastAPI application."""
+    # Startup: Initialize Redis
+    init_redis()
+    yield
+    # Shutdown: Close connections
+    await close_redis()
+
+
+app = FastAPI(
+    title="Cookbook API",
+    description="Backend API for the Cookbook application",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class NoCacheMiddleware(BaseHTTPMiddleware):
+    @typing.override
     async def dispatch(
         self,
         request: Request,
@@ -40,42 +58,22 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
         return response
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> typing.AsyncGenerator[None]:
-    # Startup
-    await init_redis()
-    yield
-    # Shutdown
-    await close_redis()
-
-
-app = FastAPI(
-    title="Cookbook API",
-    description="Modern recipe management system",
-    version="1.0.0",
-    lifespan=lifespan,
-)
-
-# No cache middleware for API endpoints
 app.add_middleware(NoCacheMiddleware)
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Auth Routes
+# API Routes
+app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
 app.include_router(auth_routes.router, prefix="/api/auth", tags=["auth"])
 
-# Recipe Routes
-app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
 
-# Static files mount for uploads
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+def configure_static(app: FastAPI) -> None:
+    """
+    Configure static file serving for the React frontend.
+    In production, the frontend is built into cookbook/static.
+    """
+    static_dir = Path(__file__).parent / "static"
+    if static_dir.exists():
+        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+
 
 # Frontend static files (only in production)
 configure_static(app)
@@ -86,9 +84,10 @@ async def root() -> dict[str, str]:
     return {"message": "Cookbook API", "version": "1.0.0"}
 
 
-@app.get("/api/health")
-async def api_health_check() -> dict[str, str]:
-    return {"status": "healthy", "timestamp": "2025-09-18T23:00:00Z"}
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    """Health check endpoint."""
+    return {"status": "healthy"}
 
 
 def main() -> None:
