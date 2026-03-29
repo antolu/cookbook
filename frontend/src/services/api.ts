@@ -144,7 +144,7 @@ export const recipeApi = {
   },
 
   // Upload recipe file
-  uploadRecipeFile: async (file: File): Promise<any> => {
+  uploadRecipeFile: async (file: File): Promise<{ filename: string; conversion_note?: string }> => {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -157,13 +157,13 @@ export const recipeApi = {
   },
 
   // Export recipe
-  exportRecipe: async (id: string, format: string): Promise<any> => {
+  exportRecipe: async (id: string, format: string): Promise<string> => {
     const response = await api.get(`/recipes/${id}/export/${format}`);
     return response.data;
   },
 
   // Get recipe stats (admin only)
-  getRecipeStats: async (): Promise<any> => {
+  getRecipeStats: async (): Promise<Record<string, unknown>> => {
     const response = await api.get('/recipes/stats/summary');
     return response.data;
   },

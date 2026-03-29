@@ -33,9 +33,11 @@ export const EditorPage: React.FC = () => {
       setTimeout(() => {
         navigate(`/recipes/${response.data.recipe_slug}`);
       }, 1000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save recipe:', error);
-      const errorMessage = error.response?.data?.detail || 'Failed to save recipe';
+      const errorMessage =
+        (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ||
+        'Failed to save recipe';
       toast.error(errorMessage);
     } finally {
       setSaving(false);

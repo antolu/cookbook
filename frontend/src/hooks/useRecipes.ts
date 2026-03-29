@@ -1,17 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { recipeApi } from '../services/api';
-import {
-  RecipeCreate,
-  RecipeUpdate,
-  RecipeSearchParams,
-} from '../types';
+import { RecipeCreate, RecipeUpdate, RecipeSearchParams } from '../types';
 
 // Query keys
 export const RECIPE_KEYS = {
   all: ['recipes'] as const,
   lists: () => [...RECIPE_KEYS.all, 'list'] as const,
-  list: (params?: any) => [...RECIPE_KEYS.lists(), params] as const,
+  list: (params?: Record<string, unknown>) => [...RECIPE_KEYS.lists(), params] as const,
   details: () => [...RECIPE_KEYS.all, 'detail'] as const,
   detail: (id: string) => [...RECIPE_KEYS.details(), id] as const,
   search: (params: RecipeSearchParams) => [...RECIPE_KEYS.all, 'search', params] as const,
@@ -120,8 +116,10 @@ export function useCreateRecipe() {
 
       toast.success(`Recipe "${newRecipe.name}" created successfully!`);
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.detail || 'Failed to create recipe';
+    onError: (error: unknown) => {
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        'Failed to create recipe';
       toast.error(message);
     },
   });
@@ -145,8 +143,10 @@ export function useUpdateRecipe() {
 
       toast.success(`Recipe "${updatedRecipe.name}" updated successfully!`);
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.detail || 'Failed to update recipe';
+    onError: (error: unknown) => {
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        'Failed to update recipe';
       toast.error(message);
     },
   });
@@ -169,8 +169,10 @@ export function useDeleteRecipe() {
 
       toast.success('Recipe deleted successfully!');
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.detail || 'Failed to delete recipe';
+    onError: (error: unknown) => {
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        'Failed to delete recipe';
       toast.error(message);
     },
   });
@@ -193,8 +195,10 @@ export function useUploadRecipeFile() {
         toast(result.conversion_note, { duration: 6000, icon: 'ℹ️' });
       }
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.detail || 'Failed to upload recipe file';
+    onError: (error: unknown) => {
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        'Failed to upload recipe file';
       toast.error(message);
     },
   });

@@ -57,7 +57,7 @@ export const RecipeEditor: React.FC<RecipeEditorProps> = ({
   onSave,
 }) => {
   const [value, setValue] = useState(initialValue);
-  const [extensions, setExtensions] = useState<any[]>([]);
+  const [extensions, setExtensions] = useState<import('@codemirror/state').Extension[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);

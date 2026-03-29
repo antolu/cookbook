@@ -1,10 +1,11 @@
 import '@testing-library/jest-dom';
 
 // Mock environment variables
-global.import = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).import = {
   meta: {
     env: {
       VITE_API_URL: 'http://localhost:8000/api',
     },
   },
-} as any;
+} satisfies Record<string, unknown>;
