@@ -8,13 +8,13 @@ local_scheme = "no-local-version"
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"}
+license = {file = ["LICENSE.md"]}
 
 [project]
 name = "cookbook"
-dynamic = ["version", "readme"]
+dynamic = ["version", "readme", "license"]
 description = "Modern recipe management system with FastAPI backend and React frontend"
-authors = [{name = "Anton Lu", email = "hello@antonlu.com"}]
-license = {text = "MIT"}
+authors = [{name = "Anton Lu", email = "anton@haochen.lu"}]
 requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
