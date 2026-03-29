@@ -51,7 +51,9 @@ app.add_middleware(
 )
 
 # Routes
-app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
+app.include_router(
+    recipes.router, prefix=f"{settings.api_prefix}/recipes", tags=["recipes"]
+)
 
 # Static files
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")

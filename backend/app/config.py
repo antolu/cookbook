@@ -15,6 +15,18 @@ class Settings(BaseSettings):
     # Environment
     environment: str = Field(default="development", description="Environment")
 
+    # App mode: development (standalone) or integrated (subapp in haochen.lu)
+    app_mode: str = Field(
+        default="development",
+        description="App mode: development or integrated",
+    )
+
+    # Subapp settings (only used in integrated mode)
+    subapp_prefix: str = Field(
+        default="", description="Subapp URL prefix (e.g., /cookbook)"
+    )
+    api_prefix: str = Field(default="/api", description="API prefix")
+
     # Database
     database_url: str = Field(
         default="postgresql+asyncpg://postgres:password@localhost:5432/cookbook",
@@ -53,6 +65,16 @@ class Settings(BaseSettings):
     @property
     def upload_path(self) -> Path:
         return Path(self.upload_dir)
+
+    @property
+    def is_integrated(self) -> bool:
+        """Check if running in integrated mode (as subapp in haochen.lu)."""
+        return self.app_mode.lower() == "integrated"
+
+    @property
+    def is_development(self) -> bool:
+        """Check if running in development mode (standalone)."""
+        return self.app_mode.lower() == "development"
 
     def __post_init__(self):
         # Create directories if they don't exist

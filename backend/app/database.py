@@ -5,7 +5,25 @@ from sqlalchemy.orm import declarative_base
 
 from app.config import settings
 
-engine = create_async_engine(settings.database_url, echo=False)
+
+def get_database_url() -> str:
+    """
+    Get database URL with optional schema prefix for integrated mode.
+
+    In integrated mode, appends PostgreSQL search_path to use cookbook schema.
+    In development mode, uses database URL as-is.
+    """
+    db_url = settings.database_url
+
+    # In integrated mode, add schema prefix if not already present
+    if settings.is_integrated and "search_path" not in db_url:
+        separator = "&" if "?" in db_url else "?"
+        db_url = f"{db_url}{separator}options=-csearch_path%3Dcookbook"
+
+    return db_url
+
+
+engine = create_async_engine(get_database_url(), echo=False)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 Base = declarative_base()

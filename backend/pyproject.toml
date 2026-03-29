@@ -37,6 +37,8 @@ dependencies = [
     "markdown~=3.5.1",
     "pymdown-extensions~=10.4",
     "python-frontmatter~=1.1.0",
+    "fastapi-users[sqlalchemy]~=12.1.2",
+    "pyjwt~=2.8.0",
 ]
 
 [project.optional-dependencies]
