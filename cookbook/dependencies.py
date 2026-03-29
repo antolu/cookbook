@@ -1,18 +1,11 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-import jwt
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from cookbook.auth.security import decode_token
 from cookbook.config import settings
 from cookbook.database import get_session
 from cookbook.models.user import User
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 
 async def get_current_user_optional(
@@ -20,77 +13,50 @@ async def get_current_user_optional(
     db: AsyncSession = Depends(get_session),
 ) -> User | None:
     """
-    Get current user from JWT token, or None if not authenticated.
-
-    In development mode: Always returns None (no authentication required).
-    In integrated mode: Validates JWT token issued by haochen.lu.
+    Get current user from JWT token (cookie or header), or None if not authenticated.
+    Uses shared secret validation.
     """
-    # In development mode, no authentication required
-    if settings.is_development:
+    token = request.cookies.get(settings.security.cookie_name)
+    if not token:
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
+    if not token:
         return None
 
-    # In integrated mode, validate JWT token
-    auth_header = request.headers.get("authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    payload = decode_token(token)
+    if not payload:
         return None
 
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
-        user_id: str | None = payload.get("sub")
-
-        if not user_id:
-            return None
-
-        # Fetch user from database
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-        return user
-
-    except jwt.ExpiredSignatureError:
+    user_id = payload.get("sub")
+    if not user_id:
         return None
-    except jwt.InvalidTokenError:
-        return None
-    except Exception:
-        return None
+
+    # Fetch user from database or return virtual user from payload
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
 
 
 async def get_current_user(
     user: User | None = Depends(get_current_user_optional),
 ) -> User:
-    """
-    Get current authenticated user, or raise 401 if not authenticated.
-
-    In development mode: Raises 401 (auth not available in dev mode).
-    In integrated mode: Requires valid JWT token.
-    """
-    if settings.is_development:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication not available in development mode",
-        )
-
+    """Get current authenticated user, or raise 401."""
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Not authenticated or invalid token",
         )
-
     return user
 
 
 async def get_current_admin_user(
     user: User = Depends(get_current_user),
 ) -> User:
-    """
-    Get current authenticated admin user, or raise 403 if not admin.
-
-    Requires is_superuser=True or is_admin=True.
-    """
-    if not (user.is_superuser or user.is_admin):
+    """Check if user has admin privileges."""
+    if not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required",
         )
-
     return user

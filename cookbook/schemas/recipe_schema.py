@@ -10,89 +10,82 @@ RECIPE_FRONTMATTER_SCHEMA = {
             "type": "string",
             "minLength": 1,
             "maxLength": 200,
-            "description": "Recipe name"
+            "description": "Recipe name",
         },
         "description": {
             "type": "string",
             "maxLength": 500,
-            "description": "Brief description of the recipe"
+            "description": "Brief description of the recipe",
         },
         "servings": {
             "type": "string",
-            "description": "Number of servings (e.g., '4 people', '12 cookies')"
+            "description": "Number of servings (e.g., '4 people', '12 cookies')",
         },
         "prep_time": {
             "type": "string",
             "pattern": "^\\d+\\s*(minutes?|mins?|hours?|hrs?|h)?(\\s+\\d+\\s*(minutes?|mins?))?$",
-            "description": "Preparation time (e.g., '15 minutes', '1 hour 30 minutes')"
+            "description": "Preparation time (e.g., '15 minutes', '1 hour 30 minutes')",
         },
         "cook_time": {
             "type": "string",
             "pattern": "^\\d+\\s*(minutes?|mins?|hours?|hrs?|h)?(\\s+\\d+\\s*(minutes?|mins?))?$",
-            "description": "Cooking time (e.g., '30 minutes', '2 hours')"
+            "description": "Cooking time (e.g., '30 minutes', '2 hours')",
         },
         "temperature": {
             "type": "integer",
             "minimum": 0,
             "maximum": 600,
-            "description": "Cooking temperature in Fahrenheit"
+            "description": "Cooking temperature in Fahrenheit",
         },
         "difficulty": {
             "type": "string",
             "enum": ["easy", "medium", "hard"],
-            "description": "Recipe difficulty level"
+            "description": "Recipe difficulty level",
         },
         "cuisine": {
             "type": "string",
             "maxLength": 100,
-            "description": "Cuisine type (e.g., 'italian', 'chinese', 'french')"
+            "description": "Cuisine type (e.g., 'italian', 'chinese', 'french')",
         },
         "category": {
             "type": "string",
             "maxLength": 100,
-            "description": "Recipe category (e.g., 'dessert', 'main', 'appetizer')"
+            "description": "Recipe category (e.g., 'dessert', 'main', 'appetizer')",
         },
         "tags": {
             "type": "array",
-            "items": {
-                "type": "string",
-                "maxLength": 50
-            },
+            "items": {"type": "string", "maxLength": 50},
             "uniqueItems": True,
-            "description": "Recipe tags for categorization"
+            "description": "Recipe tags for categorization",
         },
         "notes": {
             "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "description": "Additional notes about the recipe"
+            "items": {"type": "string"},
+            "description": "Additional notes about the recipe",
         },
         "tips": {
             "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "description": "Cooking tips and tricks"
+            "items": {"type": "string"},
+            "description": "Cooking tips and tricks",
         },
         "public": {
             "type": "boolean",
             "default": True,
-            "description": "Whether the recipe is publicly visible"
+            "description": "Whether the recipe is publicly visible",
         },
         "featured": {
             "type": "boolean",
             "default": False,
-            "description": "Whether the recipe is featured"
+            "description": "Whether the recipe is featured",
         },
         "language": {
             "type": "string",
             "default": "en",
             "pattern": "^[a-z]{2}$",
-            "description": "Recipe language code (ISO 639-1)"
-        }
+            "description": "Recipe language code (ISO 639-1)",
+        },
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 

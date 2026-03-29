@@ -4,17 +4,12 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
 
 import typer
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from cookbook.database import AsyncSessionLocal
-from cookbook.core.migration import (
-    DjangoToSQLAlchemyMigrator,
-    run_full_migration
-)
 from cookbook.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
+from cookbook.core.migration import run_full_migration
+from cookbook.database import AsyncSessionLocal
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -25,18 +20,24 @@ app = typer.Typer(help="Cookbook CLI for migrations and utilities")
 
 @app.command()
 def migrate_django_recipes(
-    django_export_file: str = typer.Argument(..., help="Path to Django recipe export JSON file"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Preview migration without saving to database")
+    django_export_file: str = typer.Argument(
+        ..., help="Path to Django recipe export JSON file"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Preview migration without saving to database"
+    ),
 ):
     """Migrate recipes from Django JSON export to new SQLAlchemy format."""
 
     async def run_migration():
         # Load Django export
-        with open(django_export_file, 'r', encoding='utf-8') as f:
+        with open(django_export_file, encoding="utf-8") as f:
             django_data = json.load(f)
 
         if not isinstance(django_data, list):
-            typer.echo("Error: Django export should be a list of recipe objects", err=True)
+            typer.echo(
+                "Error: Django export should be a list of recipe objects", err=True
+            )
             raise typer.Exit(1)
 
         typer.echo(f"Found {len(django_data)} recipes to migrate")
@@ -44,7 +45,7 @@ def migrate_django_recipes(
         if dry_run:
             typer.echo("DRY RUN - No changes will be saved to database")
             for i, recipe in enumerate(django_data[:5]):  # Show first 5
-                typer.echo(f"{i+1}. {recipe.get('name', 'Unnamed')}")
+                typer.echo(f"{i + 1}. {recipe.get('name', 'Unnamed')}")
             if len(django_data) > 5:
                 typer.echo(f"... and {len(django_data) - 5} more")
             return
@@ -53,13 +54,13 @@ def migrate_django_recipes(
         async with AsyncSessionLocal() as db:
             results = await run_full_migration(db, django_data)
 
-            typer.echo(f"Migration completed:")
+            typer.echo("Migration completed:")
             typer.echo(f"  ✅ Successful: {results['successful']}")
             typer.echo(f"  ❌ Failed: {results['failed']}")
 
-            if results['errors']:
+            if results["errors"]:
                 typer.echo("\nErrors:")
-                for error in results['errors']:
+                for error in results["errors"]:
                     typer.echo(f"  - {error['recipe']}: {error['error']}")
 
     asyncio.run(run_migration())
@@ -67,7 +68,7 @@ def migrate_django_recipes(
 
 @app.command()
 def validate_markdown_recipe_file(
-    markdown_file: str = typer.Argument(..., help="Path to Markdown recipe file")
+    markdown_file: str = typer.Argument(..., help="Path to Markdown recipe file"),
 ):
     """Validate a Markdown recipe file."""
 
@@ -77,7 +78,7 @@ def validate_markdown_recipe_file(
         raise typer.Exit(1)
 
     # Read and validate
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     errors = validate_markdown_recipe(content)
@@ -87,13 +88,12 @@ def validate_markdown_recipe_file(
         for error in errors:
             typer.echo(f"  - {error}")
         raise typer.Exit(1)
-    else:
-        typer.echo(f"✅ {file_path.name} is valid")
+    typer.echo(f"✅ {file_path.name} is valid")
 
 
 @app.command()
 def parse_markdown_recipe(
-    markdown_file: str = typer.Argument(..., help="Path to Markdown recipe file")
+    markdown_file: str = typer.Argument(..., help="Path to Markdown recipe file"),
 ):
     """Parse and display a Markdown recipe file."""
 
@@ -103,7 +103,7 @@ def parse_markdown_recipe(
         raise typer.Exit(1)
 
     # Read and parse
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     try:
@@ -138,8 +138,8 @@ def export_sample_recipes():
 
     samples = [
         {
-            'filename': 'chocolate-chip-cookies.md',
-            'content': '''---
+            "filename": "chocolate-chip-cookies.md",
+            "content": """---
 name: "Classic Chocolate Chip Cookies"
 description: "Crispy on the outside, chewy on the inside chocolate chip cookies"
 servings: "24 cookies"
@@ -195,11 +195,11 @@ Classic chocolate chip cookies that are crispy on the outside and perfectly chew
 - Room temperature ingredients mix better
 - Don't overmix the dough to avoid tough cookies
 - Use parchment paper for easy cleanup
-'''
+""",
         },
         {
-            'filename': 'spaghetti-carbonara.md',
-            'content': '''---
+            "filename": "spaghetti-carbonara.md",
+            "content": """---
 name: "Authentic Spaghetti Carbonara"
 description: "Traditional Roman pasta dish with eggs, cheese, and pancetta"
 servings: "4 people"
@@ -251,17 +251,17 @@ Authentic Roman carbonara made with just five ingredients: pasta, eggs, pecorino
 - Have all ingredients ready before starting
 - The pan should be hot but not on heat when adding eggs
 - Toss vigorously to emulsify the sauce
-'''
-        }
+""",
+        },
     ]
 
     output_dir = Path("sample_recipes")
     output_dir.mkdir(exist_ok=True)
 
     for sample in samples:
-        file_path = output_dir / sample['filename']
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(sample['content'])
+        file_path = output_dir / sample["filename"]
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(sample["content"])
         typer.echo(f"✅ Created {file_path}")
 
     typer.echo(f"\nSample recipes created in {output_dir}")

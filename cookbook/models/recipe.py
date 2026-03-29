@@ -4,15 +4,22 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, ARRAY
-from sqlalchemy.dialects.postgresql import UUID, JSON
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    ARRAY,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
+from sqlalchemy.dialects.postgresql import JSON, UUID
 
 from cookbook.database import Base
 
 if TYPE_CHECKING:
-    from typing import Optional, List, Dict, Any
-    from cookbook.models.user import User
+    pass
 
 
 class Recipe(Base):
@@ -68,7 +75,9 @@ class Recipe(Base):
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    published_at = Column(DateTime)  # renamed from pub_date, can be different from created_at
+    published_at = Column(
+        DateTime
+    )  # renamed from pub_date, can be different from created_at
 
     def __repr__(self) -> str:
         return f"<Recipe(id={self.id}, name='{self.name}')>"

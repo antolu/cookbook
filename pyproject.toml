@@ -6,6 +6,9 @@ build-backend = "setuptools.build_meta"
 write_to = "cookbook/_version.py"
 local_scheme = "no-local-version"
 
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
 [project]
 name = "cookbook"
 dynamic = ["version", "readme"]
@@ -23,26 +26,25 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "fastapi~=0.104.1",
-    "uvicorn[standard]~=0.24.0",
-    "sqlalchemy~=2.0.23",
-    "alembic~=1.13.0",
-    "asyncpg~=0.29.0",
-    "redis~=5.0.1",
-    "celery~=5.3.4",
-    "pillow~=10.1.0",
-    "python-multipart~=0.0.6",
+    "fastapi~=0.135.1",
+    "uvicorn[standard]~=0.42.0",
+    "sqlalchemy[asyncio]~=2.0.48",
+    "alembic~=1.18.4",
+    "asyncpg~=0.31.0",
+    "redis~=7.4.0",
+    "celery~=5.4.0",
+    "pillow>=11.0.0",
+    "python-multipart~=0.0.12",
     "passlib[bcrypt]~=1.7.4",
     "python-jose[cryptography]~=3.3.0",
-    "pydantic~=2.5.0",
-    "pydantic-settings~=2.1.0",
-    "httpx~=0.25.2",
-    "pyyaml~=6.0.1",
-    "markdown~=3.5.1",
-    "pymdown-extensions~=10.4",
+    "pydantic~=2.12.5",
+    "pydantic-settings~=2.13.1",
+    "httpx~=0.28.1",
+    "pyyaml~=6.0.3",
+    "markdown~=3.7",
+    "pymdown-extensions~=10.14",
     "python-frontmatter~=1.1.0",
-    "fastapi-users[sqlalchemy]~=12.1.2",
-    "pyjwt~=2.8.0",
+    "pyjwt~=2.10.1",
 ]
 
 [project.scripts]
@@ -153,7 +155,6 @@ extend-exclude = '''
 '''
 
 [tool.ruff]
-
 exclude = [
   ".bzr",
   ".direnv",
@@ -176,16 +177,14 @@ exclude = [
   "node_modules",
   "venv",
   ".venv",
+  "cookbook/_version.py",
 ]
 
 line-length = 88
-target-version = "py311"
-
+target-version = "py314"
 preview = true
-unsafe-fixes = true
 
 [tool.ruff.lint]
-# All rules can be found here: https://docs.astral.sh/ruff/rules/
 select = [
   "F",   # pyflakes
   "E",   # error  (pycodestyle)
@@ -196,13 +195,9 @@ select = [
   "PLC", # convention  (pylint)
   "PLE", # error  (pylint)
   "PLW", # warning  (pylint)
-  # "D",  # docstring (pydocstyle),  # not enabled by default
-  "PD",   # pandas
-  "TRY",  # tryceratops
-  "NPY",  # numpy
+  "PLR", # refactor  (pylint)
   "PERF", # perflint
   "RUF",  # ruff
-  # v flake8 v
   "B",
   "C4",
   "FBT",
@@ -221,61 +216,24 @@ select = [
   "SIM",
 ]
 fixable = ["ALL"]
-ignore = [
-   "E501",
-   "W505",
-   "ISC001",
-   "PD901",
-   "PLW2901",
-   "N812",
-   "N806",
-   "G004",
-   "RUF002",
-   "FBT001",   # Boolean-typed positional argument
-   "FBT002",   # Boolean default positional argument
-   "FBT003",   # Boolean positional value in function call
-   "NPY002",   # Replace legacy numpy random calls
-   "E721",     # Type comparison with ==
-   "RUF043",   # Raw string for regex patterns
-   "B008",     # Do not perform function calls in argument defaults (FastAPI Depends pattern)
-   "TRY300",   # Consider moving statement to else block (stylistic)
-   "TRY401",   # Redundant exception object in logging.exception
-   "RUF029",   # Function is declared async but doesn't await (acceptable for FastAPI)
-]
+ignore = ["E501", "W505", "ISC001", "PLW2901", "N812", "N806", "G004", "PLR2004"]
 
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = [
-  "SLF001",    # Private member accessed (common in tests)
-  "PLC2701",   # Private name import (common in tests)
-  "PLC0415",   # Import should be at top-level (common in test functions)
-  "PT011",     # pytest.raises() too broad (acceptable in tests)
-  "PT017",     # assertion on exception in except block (acceptable in tests)
-  "PT012",     # pytest.raises() multi-statement (acceptable in tests)
-  "SIM115",    # Use context manager for opening files (acceptable in tests)
-  "TRY300",    # Move statement to else block (acceptable in tests)
-  "PLC1901",   # Empty string comparison (acceptable in tests)
-]
-"docs/**" = [
-  "SLF001",    # Private member accessed (needed for docs)
-]
-"cookbook/core/image_processor.py" = [
-  "SLF001",    # Private member accessed (_getexif is the correct PIL API)
-]
-"test_simple.py" = [
-  "PLC0415",   # Import at function level (demo script)
-]
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [tool.ruff.format]
 preview = true
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
+explicit_package_bases = true
+namespace_packages = true
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false
 no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true

@@ -1,82 +1,73 @@
 from __future__ import annotations
 
-import os
+import typing
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class DatabaseSettings(BaseModel):
+    host: str = "localhost"
+    port: int = 5432
+    user: str = "cookbook"
+    password: str = "cookbook"
+    name: str = "cookbook"
+
+    @property
+    def url(self) -> str:
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
+
+
+class RedisSettings(BaseModel):
+    url: str = "redis://localhost:6379/0"
+
+
+class SecuritySettings(BaseModel):
+    secret_key: str = Field(default="dev-secret-key")
+    algorithm: str = Field(default="HS256")
+    auth_base_url: str = Field(default="http://localhost:8000")
+    login_url: str = Field(default="http://localhost/login")
+    redirect_uri: str = Field(default="http://localhost:6002/api/auth/callback")
+    cookie_name: str = Field(default="access_token")
+    cookie_secure: bool = Field(default=False)
+    cookie_domain: str | None = Field(default=None)
+    request_timeout_seconds: int = Field(default=10)
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=False
-    )
-
-    # Environment
-    environment: str = Field(default="development", description="Environment")
-
-    # App mode: development (standalone) or integrated (subapp in haochen.lu)
-    app_mode: str = Field(
-        default="development",
-        description="App mode: development or integrated",
-    )
-
-    # Subapp settings (only used in integrated mode)
-    subapp_prefix: str = Field(
-        default="", description="Subapp URL prefix (e.g., /cookbook)"
-    )
-    api_prefix: str = Field(default="/api", description="API prefix")
-
-    # Database
-    database_url: str = Field(
-        default="postgresql+asyncpg://postgres:password@localhost:5432/cookbook",
-        description="Database URL",
-    )
-
-    # Redis
-    redis_url: str = Field(default="redis://localhost:6379/0", description="Redis URL")
-
-    # Security
-    secret_key: str = Field(default="dev-secret-key", description="Secret key")
-    session_secret_key: str = Field(
-        default="dev-session-secret-key", description="Session secret key"
-    )
-    admin_password: str = Field(default="admin", description="Admin password")
-
-    # CORS
+    environment: str = Field(default="development")
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    redis: RedisSettings = Field(default_factory=RedisSettings)
+    security: SecuritySettings = Field(default_factory=SecuritySettings)
     cors_origins: str = Field(
-        default="http://localhost,https://localhost,http://localhost:3000",
-        description="CORS origins",
+        default="http://localhost,https://localhost,http://localhost:6002"
     )
+    max_file_size: int = Field(default=52428800)  # 50MB
+    upload_dir: str = Field(default="uploads")
+
+    @property
+    def database_url(self) -> str:
+        return self.database.url
 
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]
 
-    # Cookies
-    cookie_secure: bool = Field(default=False, description="Secure cookies")
-    cookie_domain: str = Field(default="", description="Cookie domain")
-
-    # File uploads
-    max_file_size: int = Field(default=52428800, description="Max file size (50MB)")
-    upload_dir: str = Field(default="uploads", description="Upload directory")
-
-    # Paths
     @property
     def upload_path(self) -> Path:
         return Path(self.upload_dir)
 
-    @property
-    def is_integrated(self) -> bool:
-        """Check if running in integrated mode (as subapp in haochen.lu)."""
-        return self.app_mode.lower() == "integrated"
+    model_config = SettingsConfigDict(
+        env_prefix="COOKBOOK_",
+        env_nested_delimiter="_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
-    @property
-    def is_development(self) -> bool:
-        """Check if running in development mode (standalone)."""
-        return self.app_mode.lower() == "development"
-
-    def __post_init__(self):
+    def model_post_init(self, _context: typing.Any) -> None:
         # Create directories if they don't exist
         self.upload_path.mkdir(exist_ok=True)
 

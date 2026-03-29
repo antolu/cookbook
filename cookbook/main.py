@@ -1,20 +1,37 @@
 from __future__ import annotations
 
+import typing
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, Request
+import uvicorn
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from cookbook.api import recipes
+from cookbook.auth import routes as auth_routes
 from cookbook.config import settings
 from cookbook.core.redis import close_redis, init_redis
-import uvicorn
+
+
+def configure_static(app: FastAPI) -> None:
+    """
+    Configure static file serving for the React frontend.
+    In production, the frontend is built into cookbook/static.
+    """
+    static_dir = Path(__file__).parent / "static"
+    if static_dir.exists():
+        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
 
 
 class NoCacheMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: typing.Callable[[Request], typing.Awaitable[Response]],
+    ) -> Response:
         response = await call_next(request)
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -24,7 +41,7 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> typing.AsyncGenerator[None]:
     # Startup
     await init_redis()
     yield
@@ -51,31 +68,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routes
-app.include_router(
-    recipes.router, prefix=f"{settings.api_prefix}/recipes", tags=["recipes"]
-)
+# Auth Routes
+app.include_router(auth_routes.router, prefix="/api/auth", tags=["auth"])
 
-# Static files
+# Recipe Routes
+app.include_router(recipes.router, prefix="/api/recipes", tags=["recipes"])
+
+# Static files mount for uploads
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+
+# Frontend static files (only in production)
+configure_static(app)
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     return {"message": "Cookbook API", "version": "1.0.0"}
 
 
-@app.get("/health")
-async def health_check():
+@app.get("/api/health")
+async def api_health_check() -> dict[str, str]:
     return {"status": "healthy", "timestamp": "2025-09-18T23:00:00Z"}
 
 
-@app.get("/api/health")
-async def api_health_check():
-    return {"status": "healthy", "api": "ready", "timestamp": "2025-09-18T23:00:00Z"}
-
-
 def main() -> None:
+    # Use config for default port if needed, but 8000 is traditional for these apps
     uvicorn.run("cookbook.main:app", host="0.0.0.0", port=8000, reload=True)
 
 

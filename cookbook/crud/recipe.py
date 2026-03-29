@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional, List, Dict, Any
 from uuid import UUID
 
-from sqlalchemy import and_, or_, func, desc, asc
+from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 
 from cookbook.models.recipe import Recipe
-from cookbook.schemas.recipe import RecipeCreate, RecipeUpdate, RecipeSearchParams
+from cookbook.schemas.recipe import RecipeCreate, RecipeSearchParams, RecipeUpdate
 
 
 async def create_recipe(db: AsyncSession, recipe: RecipeCreate) -> Recipe:
@@ -51,13 +49,13 @@ async def create_recipe(db: AsyncSession, recipe: RecipeCreate) -> Recipe:
     return db_recipe
 
 
-async def get_recipe(db: AsyncSession, recipe_id: UUID) -> Optional[Recipe]:
+async def get_recipe(db: AsyncSession, recipe_id: UUID) -> Recipe | None:
     """Get a recipe by ID."""
     result = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
     return result.scalar_one_or_none()
 
 
-async def get_recipe_by_slug(db: AsyncSession, slug: str) -> Optional[Recipe]:
+async def get_recipe_by_slug(db: AsyncSession, slug: str) -> Recipe | None:
     """Get a recipe by slug."""
     result = await db.execute(select(Recipe).where(Recipe.slug == slug))
     return result.scalar_one_or_none()
@@ -69,15 +67,15 @@ async def get_recipes(
     limit: int = 20,
     public_only: bool = False,
     featured_only: bool = False,
-) -> List[Recipe]:
+) -> list[Recipe]:
     """Get recipes with pagination."""
     query = select(Recipe)
 
     if public_only:
-        query = query.where(Recipe.is_public == True)
+        query = query.where(Recipe.is_public)
 
     if featured_only:
-        query = query.where(Recipe.is_featured == True)
+        query = query.where(Recipe.is_featured)
 
     query = query.order_by(desc(Recipe.created_at)).offset(skip).limit(limit)
 
@@ -87,7 +85,7 @@ async def get_recipes(
 
 async def search_recipes(
     db: AsyncSession, search_params: RecipeSearchParams
-) -> tuple[List[Recipe], int]:
+) -> tuple[list[Recipe], int]:
     """Search recipes with filters."""
     query = select(Recipe)
     count_query = select(func.count(Recipe.id))
@@ -95,7 +93,7 @@ async def search_recipes(
     conditions = []
 
     # Public recipes only for non-authenticated users
-    conditions.append(Recipe.is_public == True)
+    conditions.append(Recipe.is_public)
 
     # Text search
     if search_params.q:
@@ -121,8 +119,7 @@ async def search_recipes(
 
     # Tags filter
     if search_params.tags:
-        for tag in search_params.tags:
-            conditions.append(Recipe.tags.contains([tag]))
+        conditions.extend(Recipe.tags.contains([tag]) for tag in search_params.tags)
 
     # Time filters
     if search_params.max_prep_time:
@@ -152,7 +149,8 @@ async def search_recipes(
 
     # Apply ordering, offset, and limit
     query = (
-        query.order_by(desc(Recipe.is_featured), desc(Recipe.created_at))
+        query
+        .order_by(desc(Recipe.is_featured), desc(Recipe.created_at))
         .offset(search_params.offset)
         .limit(search_params.limit)
     )
@@ -165,7 +163,7 @@ async def search_recipes(
 
 async def update_recipe(
     db: AsyncSession, recipe_id: UUID, recipe_update: RecipeUpdate
-) -> Optional[Recipe]:
+) -> Recipe | None:
     """Update a recipe."""
     db_recipe = await get_recipe(db, recipe_id)
     if not db_recipe:
@@ -213,19 +211,17 @@ async def get_recipe_count(db: AsyncSession, public_only: bool = False) -> int:
     query = select(func.count(Recipe.id))
 
     if public_only:
-        query = query.where(Recipe.is_public == True)
+        query = query.where(Recipe.is_public)
 
     result = await db.execute(query)
     return result.scalar()
 
 
-async def get_featured_recipes(
-    db: AsyncSession, limit: int = 5
-) -> List[Recipe]:
+async def get_featured_recipes(db: AsyncSession, limit: int = 5) -> list[Recipe]:
     """Get featured recipes."""
     query = (
         select(Recipe)
-        .where(and_(Recipe.is_public == True, Recipe.is_featured == True))
+        .where(and_(Recipe.is_public, Recipe.is_featured))
         .order_by(desc(Recipe.created_at))
         .limit(limit)
     )
@@ -236,12 +232,12 @@ async def get_featured_recipes(
 
 async def get_recent_recipes(
     db: AsyncSession, limit: int = 10, public_only: bool = True
-) -> List[Recipe]:
+) -> list[Recipe]:
     """Get recently created recipes."""
     query = select(Recipe).order_by(desc(Recipe.created_at)).limit(limit)
 
     if public_only:
-        query = query.where(Recipe.is_public == True)
+        query = query.where(Recipe.is_public)
 
     result = await db.execute(query)
     return result.scalars().all()
@@ -249,7 +245,7 @@ async def get_recent_recipes(
 
 async def get_recipes_by_category(
     db: AsyncSession, category: str, limit: int = 20, public_only: bool = True
-) -> List[Recipe]:
+) -> list[Recipe]:
     """Get recipes by category."""
     query = (
         select(Recipe)
@@ -259,37 +255,39 @@ async def get_recipes_by_category(
     )
 
     if public_only:
-        query = query.where(Recipe.is_public == True)
+        query = query.where(Recipe.is_public)
 
     result = await db.execute(query)
     return result.scalars().all()
 
 
-async def get_unique_categories(db: AsyncSession) -> List[str]:
+async def get_unique_categories(db: AsyncSession) -> list[str]:
     """Get all unique categories."""
-    query = select(Recipe.category).where(
-        and_(Recipe.category.is_not(None), Recipe.is_public == True)
-    ).distinct()
+    query = (
+        select(Recipe.category)
+        .where(and_(Recipe.category.is_not(None), Recipe.is_public))
+        .distinct()
+    )
 
     result = await db.execute(query)
     return [cat for cat in result.scalars().all() if cat]
 
 
-async def get_unique_cuisines(db: AsyncSession) -> List[str]:
+async def get_unique_cuisines(db: AsyncSession) -> list[str]:
     """Get all unique cuisines."""
-    query = select(Recipe.cuisine).where(
-        and_(Recipe.cuisine.is_not(None), Recipe.is_public == True)
-    ).distinct()
+    query = (
+        select(Recipe.cuisine)
+        .where(and_(Recipe.cuisine.is_not(None), Recipe.is_public))
+        .distinct()
+    )
 
     result = await db.execute(query)
     return [cuisine for cuisine in result.scalars().all() if cuisine]
 
 
-async def get_unique_tags(db: AsyncSession) -> List[str]:
+async def get_unique_tags(db: AsyncSession) -> list[str]:
     """Get all unique tags."""
-    query = select(Recipe.tags).where(
-        and_(Recipe.tags.is_not(None), Recipe.is_public == True)
-    )
+    query = select(Recipe.tags).where(and_(Recipe.tags.is_not(None), Recipe.is_public))
 
     result = await db.execute(query)
     all_tags = set()
@@ -297,4 +295,4 @@ async def get_unique_tags(db: AsyncSession) -> List[str]:
         if tag_list:
             all_tags.update(tag_list)
 
-    return sorted(list(all_tags))
+    return sorted(all_tags)
