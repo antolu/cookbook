@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
 from pathlib import Path
 
 import typer
 
 from cookbook.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
-from cookbook.core.migration import run_full_migration
-from cookbook.database import AsyncSessionLocal
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -18,55 +14,7 @@ logger = logging.getLogger(__name__)
 app = typer.Typer(help="Cookbook CLI for migrations and utilities")
 
 
-@app.command()
-def migrate_django_recipes(
-    django_export_file: str = typer.Argument(
-        ..., help="Path to Django recipe export JSON file"
-    ),
-    *,
-    dry_run: bool = typer.Option(
-        default=False,
-        param_decls=["--dry-run"],
-        help="Preview migration without saving to database",
-    ),
-) -> None:
-    """Migrate recipes from Django JSON export to new SQLAlchemy format."""
-
-    async def run_migration() -> None:
-        # Load Django export
-        with open(django_export_file, encoding="utf-8") as f:
-            django_data = json.load(f)
-
-        if not isinstance(django_data, list):
-            typer.echo(
-                "Error: Django export should be a list of recipe objects", err=True
-            )
-            raise typer.Exit(1)
-
-        typer.echo(f"Found {len(django_data)} recipes to migrate")
-
-        if dry_run:
-            typer.echo("DRY RUN - No changes will be saved to database")
-            for i, recipe in enumerate(django_data[:5]):  # Show first 5
-                typer.echo(f"{i + 1}. {recipe.get('name', 'Unnamed')}")
-            if len(django_data) > 5:
-                typer.echo(f"... and {len(django_data) - 5} more")
-            return
-
-        # Run migration
-        async with AsyncSessionLocal() as db:
-            results = await run_full_migration(db, django_data)
-
-            typer.echo("Migration completed:")
-            typer.echo(f"  ✅ Successful: {results['successful']}")
-            typer.echo(f"  ❌ Failed: {results['failed']}")
-
-            if results["errors"]:
-                typer.echo("\nErrors:")
-                for error in results["errors"]:
-                    typer.echo(f"  - {error['recipe']}: {error['error']}")
-
-    asyncio.run(run_migration())
+# Migration commands removed — migrations are out-of-band for this project.
 
 
 @app.command()
