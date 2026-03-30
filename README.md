@@ -9,7 +9,7 @@ A modernized recipe management application built with FastAPI backend and React 
 - 🔍 **Advanced Search**: Filter by cuisine, difficulty, cooking time, ingredients
 - 📱 **Responsive Design**: Modern React frontend with Tailwind CSS
 - 🐳 **Containerized**: Docker development and production environments
- - 🔄 **Legacy Migration**: (removed) legacy Django/QML import helpers were removed; import conversions must be done out-of-band
+ - 🔄 Legacy import utilities removed (legacy formats are not supported)
 - 📊 **Rich Metadata**: Prep time, cook time, difficulty, tags, and more
 
 ## Tech Stack
@@ -151,11 +151,11 @@ Classic chocolate chip cookies that are crispy on the outside...
 
 ## Legacy data imports
 
-Legacy import utilities (Django export and QML conversions) have been removed from
-the main codebase. If you need to convert old data, create a small one‑off
-script that exports the legacy data to the Markdown/frontmatter format used by
-this project and import it separately. This keeps the runtime focused on the
-current app and avoids shipping legacy compatibility code.
+Legacy import utilities have been removed from the main codebase. If you need
+to convert old data, create a small one‑off script that exports the legacy
+data to the Markdown/frontmatter format used by this project and import it
+separately. This keeps the runtime focused on the current app and avoids
+shipping legacy compatibility code.
 
 ## API Usage
 
