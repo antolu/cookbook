@@ -4,111 +4,184 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900 font-sans;
+    background-color: #ffffff; /* bg-white */
+    color: #111827; /* text-gray-900 */
+    font-family: Inter, system-ui, sans-serif;
   }
 
   html {
-    @apply scroll-smooth;
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
   /* Button variants */
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease,
+      box-shadow 200ms ease;
+    outline: none;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    background-color: #0284c7;
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background-color: #0369a1;
   }
 
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500;
+    background-color: #f3f4f6;
+    color: #111827;
+  }
+  .btn-secondary:hover {
+    background-color: #e5e7eb;
   }
 
   .btn-outline {
-    @apply border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+    border: 1px solid #d1d5db;
+    color: #374151;
+  }
+  .btn-outline:hover {
+    background-color: #f9fafb;
   }
 
   .btn-ghost {
-    @apply text-gray-600 hover:text-gray-900 hover:bg-gray-50 focus:ring-gray-500;
+    color: #4b5563;
+  }
+  .btn-ghost:hover {
+    color: #111827;
+    background-color: #f9fafb;
   }
 
   .btn-sm {
-    @apply px-3 py-1.5 text-sm;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
   }
 
   .btn-lg {
-    @apply px-6 py-3 text-lg;
+    padding: 1.5rem 2rem;
+    font-size: 1.125rem;
   }
 
   /* Input variants */
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .input::placeholder {
+    color: #9ca3af;
+  }
+  .input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.08);
+    outline: none;
   }
 
   .input-error {
-    @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+    border-color: #fecaca;
+  }
+  .input-error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
   }
 
   /* Card variants */
   .card {
-    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
 
   .card-hover {
-    @apply transition-shadow duration-200 hover:shadow-md;
+    transition: box-shadow 200ms ease;
+  }
+  .card-hover:hover {
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
   }
 
   /* Recipe card specific styles */
   .recipe-card {
-    @apply card card-hover overflow-hidden;
+    overflow: hidden;
   }
 
   .recipe-card-image {
-    @apply w-full h-48 object-cover;
+    width: 100%;
+    height: 12rem;
+    object-fit: cover;
   }
 
   .recipe-card-content {
-    @apply p-4;
+    padding: 1rem;
   }
 
   .recipe-card-title {
-    @apply text-lg font-semibold text-gray-900 mb-2 line-clamp-2;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
   }
 
   .recipe-card-description {
-    @apply text-sm text-gray-600 mb-3 line-clamp-2;
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 0.75rem;
   }
 
   .recipe-card-meta {
-    @apply flex items-center gap-3 text-xs text-gray-500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: #6b7280;
   }
 
   /* Tag styles */
   .tag {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: #f3f4f6;
+    color: #1f2937;
   }
 
   .tag-primary {
-    @apply bg-primary-100 text-primary-800;
+    background-color: #e0f2fe;
+    color: #075985;
   }
 
   .tag-difficulty-easy {
-    @apply bg-green-100 text-green-800;
+    background-color: #dcfce7;
+    color: #065f46;
   }
 
   .tag-difficulty-medium {
-    @apply bg-yellow-100 text-yellow-800;
+    background-color: #fffbeb;
+    color: #92400e;
   }
 
   .tag-difficulty-hard {
-    @apply bg-red-100 text-red-800;
+    background-color: #fee2e2;
+    color: #7f1d1d;
   }
 
   /* Loading spinner */
   .spinner {
-    @apply animate-spin rounded-full border-2 border-gray-200 border-t-primary-600;
+    border-radius: 9999px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #0284c7;
+    animation: spin 1s linear infinite;
   }
 
   /* Line clamping */
