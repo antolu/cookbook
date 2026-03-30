@@ -11,7 +11,7 @@ from cookbook.core.markdown import MarkdownRecipeParser, validate_markdown_recip
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = typer.Typer(help="Cookbook CLI for migrations and utilities")
+app = typer.Typer(help="Cookbook CLI for utilities")
 
 
 # Migration commands removed — migrations are out-of-band for this project.

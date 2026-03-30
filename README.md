@@ -9,7 +9,7 @@ A modernized recipe management application built with FastAPI backend and React 
 - 🔍 **Advanced Search**: Filter by cuisine, difficulty, cooking time, ingredients
 - 📱 **Responsive Design**: Modern React frontend with Tailwind CSS
 - 🐳 **Containerized**: Docker development and production environments
-- 🔄 **Legacy Migration**: Automatic conversion from old Django/QML format
+ - 🔄 **Legacy Migration**: (removed) legacy Django/QML import helpers were removed; import conversions must be done out-of-band
 - 📊 **Rich Metadata**: Prep time, cook time, difficulty, tags, and more
 
 ## Tech Stack
@@ -149,31 +149,13 @@ Classic chocolate chip cookies that are crispy on the outside...
 - Store in airtight container for up to 1 week
 ```
 
-## Migration from Legacy Format
+## Legacy data imports
 
-### Django Recipe Migration
-
-If you have existing Django recipes, export them and migrate:
-
-```bash
-# In your Django project
-python manage.py dumpdata cookbook.recipe > recipes.json
-
-# In cookbook project
-python -m app.cli migrate-django-recipes recipes.json
-```
-
-### QML File Migration
-
-Convert legacy QML recipe files to Markdown:
-
-```bash
-# Convert single file
-python -m app.cli convert-qml-files old_recipes/ new_recipes/
-
-# Validate converted recipes
-python -m app.cli validate-markdown-recipe-file new_recipes/recipe.md
-```
+Legacy import utilities (Django export and QML conversions) have been removed from
+the main codebase. If you need to convert old data, create a small one‑off
+script that exports the legacy data to the Markdown/frontmatter format used by
+this project and import it separately. This keeps the runtime focused on the
+current app and avoids shipping legacy compatibility code.
 
 ## API Usage
 
