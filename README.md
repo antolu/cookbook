@@ -55,12 +55,12 @@ A modernized recipe management application built with FastAPI backend and React 
    ./dev.sh start
    ```
 
-   This will start:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - Database: PostgreSQL on port 5432
-   - Redis: Redis on port 6379
+    This will start:
+    - Frontend (proxied via nginx): http://localhost:6002
+    - Backend API (proxied at /api): http://localhost:6002/api
+    - API Documentation: http://localhost:6002/api/docs
+    - Database: PostgreSQL on host port 5436 (dev compose)
+    - Redis: Redis on port 6379
 
 3. **Run database migrations**:
    ```bash
