@@ -165,11 +165,10 @@ app/
 ├── schemas/
 │   ├── recipe.py        # Pydantic request/response models
 │   └── recipe_schema.py # JSON Schema for frontmatter validation
-├── core/
-│   ├── markdown.py      # Parse/generate markdown recipes, validate
-│   ├── migration.py     # Django recipe migration utilities
-│   └── redis.py         # Redis connection management
-└── cli.py               # Typer CLI for migrations and utilities
+    ├── core/
+    │   ├── markdown.py      # Parse/generate markdown recipes, validate
+    │   └── redis.py         # Redis connection management
+    └── cli.py               # Typer CLI for utilities
 ```
 
 **Key Architectural Patterns:**
