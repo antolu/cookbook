@@ -1,27 +1,9 @@
 # Production environment for Cookbook
 
 services:
-  frontend:
-    image: antonlu/cookbook-frontend:latest
-    container_name: cookbook-frontend
-    environment:
-      - BACKEND_URL=http://backend:8000
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
-    networks:
-      - cookbook-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  backend:
-    image: antonlu/cookbook-backend:latest
-    container_name: cookbook-backend
+  app:
+    image: ${REGISTRY:-docker.io}/antonlu/cookbook:${IMAGE_TAG:-latest}
+    container_name: cookbook-app
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
@@ -42,13 +24,14 @@ services:
       - cookbook-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    expose:
-      - "8000"
+    ports:
+      - "80:8000"
 
+  # Database service
   db:
     image: postgres:15-alpine
     container_name: cookbook-db
@@ -83,7 +66,7 @@ services:
 
   # Database migration service
   migrate:
-    image: antonlu/cookbook-backend:latest
+    image: ${REGISTRY:-docker.io}/antonlu/cookbook:${IMAGE_TAG:-latest}
     container_name: cookbook-migrate
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cookbook}
