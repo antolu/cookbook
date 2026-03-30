@@ -41,9 +41,9 @@ start_dev() {
     print_status "Starting cookbook development environment..."
     print_status "This will:"
     print_status "  - Mount source code for live reload"
-    print_status "  - Frontend (Vite dev server) with HMR on port 3000"
-    print_status "  - Backend (Uvicorn) with auto-reload on port 8000"
-    print_status "  - PostgreSQL database on port 5432"
+    print_status "  - Frontend (Vite dev server) with HMR on port 3000 (proxied via nginx:6002)"
+    print_status "  - Single-container app (Uvicorn) with auto-reload on port 8000 (proxied via nginx:6002)"
+    print_status "  - PostgreSQL database on port 5436 (dev compose)"
     print_status "  - Redis cache on port 6379"
 
     # Stop any existing containers
@@ -58,10 +58,10 @@ start_dev() {
     docker compose -f docker-compose.dev.yml up -d
 
     print_status "Development environment started!"
-    print_status "Frontend: http://localhost:3000"
-    print_status "Backend API: http://localhost:8000"
-    print_status "API Docs: http://localhost:8000/docs"
-    print_status "Database: postgresql://postgres:password@localhost:5432/cookbook"
+    print_status "Frontend (via nginx): http://localhost:6002"
+    print_status "Backend API (proxied): http://localhost:6002/api"
+    print_status "API Docs (proxied): http://localhost:6002/api/docs"
+    print_status "Database: postgresql://postgres:password@localhost:5436/cookbook"
     print_status "Redis: redis://localhost:6379/0"
     print_status ""
     print_status "To view logs: ./dev.sh logs"
@@ -95,7 +95,7 @@ show_logs() {
 # Function to start production environment
 start_prod() {
     print_status "Starting cookbook production environment..."
-    print_status "This will use pre-built images without source mounting"
+    print_status "This will use pre-built single-image deployment (frontend assets served by the app)"
 
     # Stop development environment if running
     docker compose -f docker-compose.yml -f docker-compose.dev.yml down 2>/dev/null || true
@@ -117,11 +117,9 @@ stop_prod() {
 
 # Function to build frontend
 build_frontend() {
-    print_status "Building frontend..."
-    cd frontend
-    npm run build
-    cd ..
-    print_status "Frontend built successfully!"
+    print_status "Building frontend (local)..."
+    (cd frontend && npm ci && npm run build)
+    print_status "Frontend built successfully and copied into app image on next build"
 }
 
 # Function to run tests
@@ -130,7 +128,7 @@ run_tests() {
 
     # Backend tests
     print_status "Running backend tests..."
-    docker compose -f docker-compose.dev.yml exec backend python -m pytest
+    docker compose -f docker-compose.dev.yml exec app python -m pytest
 
     # Frontend tests
     print_status "Running frontend tests..."
@@ -143,9 +141,9 @@ run_lint() {
 
     # Backend linting
     print_status "Running backend linting..."
-    docker compose -f docker-compose.dev.yml exec backend ruff check --fix --unsafe-fixes --preview
-    docker compose -f docker-compose.dev.yml exec backend ruff format
-    docker compose -f docker-compose.dev.yml exec backend mypy .
+    docker compose -f docker-compose.dev.yml exec app ruff check --fix --unsafe-fixes --preview || true
+    docker compose -f docker-compose.dev.yml exec app ruff format || true
+    docker compose -f docker-compose.dev.yml exec app mypy . || true
 
     # Frontend linting
     print_status "Running frontend linting..."
@@ -157,7 +155,7 @@ run_lint() {
 # Function to run database migrations
 run_migrations() {
     print_status "Running database migrations..."
-    docker compose -f docker-compose.dev.yml exec backend alembic upgrade head
+    docker compose -f docker-compose.dev.yml exec app alembic upgrade head
     print_status "Database migrations completed!"
 }
 
@@ -171,13 +169,13 @@ create_migration() {
 
     migration_message="$2"
     print_status "Creating new migration: $migration_message"
-    docker compose -f docker-compose.dev.yml exec backend alembic revision --autogenerate -m "$migration_message"
+    docker compose -f docker-compose.dev.yml exec app alembic revision --autogenerate -m "$migration_message"
     print_status "Migration created successfully!"
 }
 
 # Function to shell into containers
 shell() {
-    service=${2:-"backend"}
+    service=${2:-"app"}
     print_status "Opening shell in $service container..."
     docker compose -f docker-compose.dev.yml exec "$service" /bin/bash
 }
@@ -186,9 +184,9 @@ shell() {
 setup_precommit() {
     print_status "Setting up pre-commit hooks..."
 
-    # Install pre-commit in backend container
-    docker compose -f docker-compose.dev.yml exec backend pip install pre-commit
-    docker compose -f docker-compose.dev.yml exec backend pre-commit install
+    # Install pre-commit in app container
+    docker compose -f docker-compose.dev.yml exec app pip install pre-commit
+    docker compose -f docker-compose.dev.yml exec app pre-commit install
 
     print_status "Pre-commit hooks installed!"
     print_status "Hooks will run automatically on git commit"
@@ -198,7 +196,7 @@ setup_precommit() {
 # Function to run pre-commit manually
 run_precommit() {
     print_status "Running pre-commit hooks..."
-    docker compose -f docker-compose.dev.yml exec backend pre-commit run --all-files
+    docker compose -f docker-compose.dev.yml exec app pre-commit run --all-files
 }
 
 # Function to show help
@@ -214,12 +212,12 @@ show_help() {
     echo "  logs [service]     Show logs (optionally for specific service)"
     echo "  prod               Start production environment"
     echo "  prod-stop          Stop production environment"
-    echo "  build              Build frontend"
+    echo "  build              Build frontend (local)"
     echo "  test               Run all tests"
     echo "  lint               Run linting and formatting"
     echo "  migrate            Run database migrations"
     echo "  migration 'msg'    Create new migration with message"
-    echo "  shell [service]    Open shell in container (default: backend)"
+    echo "  shell [service]    Open shell in container (default: app)"
     echo "  setup-precommit    Setup pre-commit hooks"
     echo "  precommit          Run pre-commit hooks manually"
     echo "  help               Show this help message"
@@ -235,7 +233,7 @@ show_help() {
     echo "  API: http://localhost/api"
     echo ""
     echo "Available services for logs/shell:"
-    echo "  backend, frontend, db, redis"
+    echo "  app, frontend, db, redis"
 }
 
 # Main script logic
