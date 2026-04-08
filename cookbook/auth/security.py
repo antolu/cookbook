@@ -17,14 +17,13 @@ def decode_token(
 
     try:
         # JWT validation using shared secret and HS256 algorithm
-        payload = typing.cast(
-            dict[str, typing.Any],
-            jwt.decode(
-                token,
-                settings.security.secret_key,
-                algorithms=[settings.security.algorithm],
-            ),
+        payload_raw = jwt.decode(
+            token,
+            settings.security.secret_key,
+            algorithms=[settings.security.algorithm],
         )
+        # jwt.decode returns Any; cast to dict with typing.cast only when necessary
+        payload = payload_raw if isinstance(payload_raw, dict) else dict(payload_raw)
     except jwt.PyJWTError:
         return None
 

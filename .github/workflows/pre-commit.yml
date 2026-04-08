@@ -56,7 +56,8 @@ jobs:
     - name: Run Mypy
       if: always()
       run: |
-        mypy --config-file pyproject.toml cookbook/
+        # Install missing stub packages automatically and run mypy
+        mypy --install-types --non-interactive --config-file pyproject.toml cookbook/
 
     - name: Pre-commit CI Lite Auto-fix
       uses: pre-commit-ci/lite-action@v1.1.0
