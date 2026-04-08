@@ -52,7 +52,12 @@ router = APIRouter()
 
 def convert_to_response(db_recipe: Recipe) -> RecipeResponse:
     """Convert a database Recipe model to response schema."""
-    # model_validate returns Any to mypy; cast to the expected return type
+    # model_validate may be treated as returning Any in some mypy environments
+    # Cast to the expected return type. In CI with installed types this cast
+    # can be flagged as redundant; silence that specific check here.
+    # The cast is required in some mypy environments where model_validate is
+    # typed as returning Any. Keep the cast but ignore redundant-cast in case
+    # CI installs better stubs.
     return cast(
         RecipeResponse, RecipeResponse.model_validate(db_recipe, from_attributes=True)
     )
