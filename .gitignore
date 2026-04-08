@@ -530,3 +530,6 @@ tags
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/react,node,python,redis,intellij,visualstudiocode,vim,macos,yarn
+
+# Do not track generated version file
+cookbook/_version.py
