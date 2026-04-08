@@ -52,7 +52,7 @@ router = APIRouter()
 
 def convert_to_response(db_recipe: Recipe) -> RecipeResponse:
     """Convert a database Recipe model to response schema."""
-    # model_validate returns Any; cast to the expected response type for mypy
+    # model_validate returns Any to mypy; cast to the expected return type
     return cast(
         RecipeResponse, RecipeResponse.model_validate(db_recipe, from_attributes=True)
     )
