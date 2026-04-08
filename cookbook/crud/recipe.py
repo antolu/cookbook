@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.sql.elements import ColumnElement
 
 from cookbook.models.recipe import Recipe
 from cookbook.schemas.recipe import RecipeCreate, RecipeSearchParams, RecipeUpdate
@@ -51,13 +52,13 @@ async def create_recipe(db: AsyncSession, recipe: RecipeCreate) -> Recipe:
 async def get_recipe(db: AsyncSession, recipe_id: UUID) -> Recipe | None:
     """Get a recipe by ID."""
     result = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
-    return typing.cast(Recipe | None, result.scalar_one_or_none())
+    return result.scalar_one_or_none()
 
 
 async def get_recipe_by_slug(db: AsyncSession, slug: str) -> Recipe | None:
     """Get a recipe by slug."""
     result = await db.execute(select(Recipe).where(Recipe.slug == slug))
-    return typing.cast(Recipe | None, result.scalar_one_or_none())
+    return result.scalar_one_or_none()
 
 
 async def get_recipes(
@@ -80,7 +81,7 @@ async def get_recipes(
     query = query.order_by(desc(Recipe.created_at)).offset(skip).limit(limit)
 
     result = await db.execute(query)
-    return typing.cast(list[Recipe], list(result.scalars().all()))
+    return list(result.scalars().all())
 
 
 async def search_recipes(
@@ -90,7 +91,8 @@ async def search_recipes(
     query = select(Recipe)
     count_query = select(func.count(Recipe.id))
 
-    conditions = []
+    # conditions collects SQLAlchemy boolean expressions (ColumnElement[bool])
+    conditions: list[ColumnElement[bool]] = []
 
     # Public recipes only for non-authenticated users
     conditions.append(Recipe.is_public)
@@ -119,6 +121,7 @@ async def search_recipes(
 
     # Tags filter
     if search_params.tags:
+        # SQLAlchemy's ARRAY.contains returns ColumnElement[bool]; keep conditions as ColumnElement
         conditions.extend(Recipe.tags.contains([tag]) for tag in search_params.tags)
 
     # Time filters
@@ -156,9 +159,11 @@ async def search_recipes(
     )
 
     result = await db.execute(query)
-    recipes = typing.cast(list[Recipe], list(result.scalars().all()))
+    recipes = list(result.scalars().all())
 
-    return recipes, total
+    # total may be None if count query returned no rows; coerce to int if present
+    total_int: int = int(total) if total is not None else 0
+    return recipes, total_int
 
 
 async def update_recipe(

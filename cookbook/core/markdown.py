@@ -5,9 +5,9 @@ import re
 from datetime import datetime
 from typing import Any
 
-import frontmatter
 import yaml
 
+import frontmatter
 from cookbook.schemas.recipe import RecipeCreate
 
 

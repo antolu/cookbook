@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 
 import typer
-
 from cookbook.core.markdown import MarkdownRecipeParser, validate_markdown_recipe
 
 # Setup logging

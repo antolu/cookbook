@@ -1,4 +1,3 @@
-import typing
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
@@ -36,9 +35,9 @@ async def get_current_user_optional(
     if not user_id:
         return None
 
-    # Fetch user from database or return virtual user from payload
     result = await db.execute(select(User).where(User.id == user_id))
-    return typing.cast(User | None, result.scalar_one_or_none())
+    user: User | None = result.scalar_one_or_none()
+    return user
 
 
 def get_current_user(

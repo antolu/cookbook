@@ -52,12 +52,18 @@ router = APIRouter()
 
 def convert_to_response(db_recipe: Recipe) -> RecipeResponse:
     """Convert a database Recipe model to response schema."""
-    return RecipeResponse.model_validate(db_recipe, from_attributes=True)  # type: ignore[no-any-return]
+    response: RecipeResponse = RecipeResponse.model_validate(
+        db_recipe, from_attributes=True
+    )
+    return response
 
 
 def convert_to_list_item(db_recipe: Recipe) -> RecipeListItem:
     """Convert a database Recipe model to list item schema."""
-    return RecipeListItem.model_validate(db_recipe, from_attributes=True)  # type: ignore[no-any-return]
+    list_item: RecipeListItem = RecipeListItem.model_validate(
+        db_recipe, from_attributes=True
+    )
+    return list_item
 
 
 @router.get("/", response_model=list[RecipeListItem])
