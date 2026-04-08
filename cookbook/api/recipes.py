@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import typing
-from typing import Annotated, cast
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
@@ -52,22 +52,18 @@ router = APIRouter()
 
 def convert_to_response(db_recipe: Recipe) -> RecipeResponse:
     """Convert a database Recipe model to response schema."""
-    # model_validate may be treated as returning Any in some mypy environments
-    # Cast to the expected return type. In CI with installed types this cast
-    # can be flagged as redundant; silence that specific check here.
-    # The cast is required in some mypy environments where model_validate is
-    # typed as returning Any. Keep the cast but ignore redundant-cast in case
-    # CI installs better stubs.
-    return cast(
-        RecipeResponse, RecipeResponse.model_validate(db_recipe, from_attributes=True)
+    response: RecipeResponse = RecipeResponse.model_validate(
+        db_recipe, from_attributes=True
     )
+    return response
 
 
 def convert_to_list_item(db_recipe: Recipe) -> RecipeListItem:
     """Convert a database Recipe model to list item schema."""
-    return cast(
-        RecipeListItem, RecipeListItem.model_validate(db_recipe, from_attributes=True)
+    list_item: RecipeListItem = RecipeListItem.model_validate(
+        db_recipe, from_attributes=True
     )
+    return list_item
 
 
 @router.get("/", response_model=list[RecipeListItem])
