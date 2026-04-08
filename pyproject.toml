@@ -70,7 +70,6 @@ security = [
     "safety~=2.3.5",
 ]
 dev = [
-    "black~=23.11.0",
     "ruff~=0.15.9",
     "mypy~=1.20.0",
     "pre-commit~=3.6.0",
