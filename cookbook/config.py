@@ -71,5 +71,15 @@ class Settings(BaseSettings):
         # Create directories if they don't exist
         self.upload_path.mkdir(exist_ok=True)
 
+    @property
+    def is_integrated(self) -> bool:
+        """Return True if running in integrated (production) mode."""
+        return self.environment.lower() == "integrated"
+
+    @property
+    def redis_url(self) -> str:
+        """Compatibility property used by redis helper."""
+        return self.redis.url
+
 
 settings = Settings()

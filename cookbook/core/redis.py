@@ -10,7 +10,8 @@ redis_client: aioredis.Redis | None = None
 def init_redis() -> None:
     """Initialize Redis connection."""
     global redis_client  # noqa: PLW0603
-    redis_client = aioredis.from_url(settings.redis_url, decode_responses=True)
+    # Use redis.url from Settings
+    redis_client = aioredis.from_url(settings.redis.url, decode_responses=True)
 
 
 async def close_redis() -> None:

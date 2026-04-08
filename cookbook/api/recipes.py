@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import typing
-from typing import Annotated
+from typing import Annotated, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile
@@ -52,12 +52,17 @@ router = APIRouter()
 
 def convert_to_response(db_recipe: Recipe) -> RecipeResponse:
     """Convert a database Recipe model to response schema."""
-    return RecipeResponse.model_validate(db_recipe, from_attributes=True)  # type: ignore[no-any-return]
+    # model_validate returns Any; cast to the expected response type for mypy
+    return cast(
+        RecipeResponse, RecipeResponse.model_validate(db_recipe, from_attributes=True)
+    )
 
 
 def convert_to_list_item(db_recipe: Recipe) -> RecipeListItem:
     """Convert a database Recipe model to list item schema."""
-    return RecipeListItem.model_validate(db_recipe, from_attributes=True)  # type: ignore[no-any-return]
+    return cast(
+        RecipeListItem, RecipeListItem.model_validate(db_recipe, from_attributes=True)
+    )
 
 
 @router.get("/", response_model=list[RecipeListItem])

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     ARRAY,
@@ -15,11 +14,9 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 from cookbook.database import Base
-
-if TYPE_CHECKING:
-    pass
 
 
 class Recipe(Base):
@@ -48,14 +45,16 @@ class Recipe(Base):
 
     # Additional content
     changelog = Column(JSON)
-    notes = Column(ARRAY(Text))
-    tips = Column(ARRAY(Text))
+    notes: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
+    tips: Mapped[list[str] | None] = mapped_column(ARRAY(Text))
 
     # Recipe metadata
     difficulty = Column(String(20))  # easy, medium, hard
     cuisine = Column(String(50))
     category = Column(String(50))  # appetizer, main, dessert, etc.
-    tags = Column(ARRAY(String(50)))  # dietary restrictions, cooking methods, etc.
+    tags: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String(50))
+    )  # dietary restrictions, cooking methods, etc.
 
     # Media
     image_url = Column(String(500))

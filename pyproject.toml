@@ -243,7 +243,7 @@ module = "alembic.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "app.crud.*"
+module = "cookbook.crud.*"
 warn_return_any = false
 
 [tool.bandit]
